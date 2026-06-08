@@ -42,7 +42,7 @@ export default function SegmentedControl<T extends string>({
           <motion.button
             key={opt}
             type="button"
-            onClick={() => !isLocked && onChange(opt)}
+            onClick={() => { if (!isLocked && opt !== selected) onChange(opt); }}
             whileTap={isLocked ? undefined : { scale: 0.94 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
             style={{ willChange: "transform" }}

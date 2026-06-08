@@ -42,7 +42,9 @@ export function computeWeeklyVolume(exercises: Exercise[]): number {
   return exercises.reduce((sum, ex) => {
     if (!withinDays(ex.latestLog?.date, 7)) return sum;
     const log = ex.latestLog!;
-    const w = log.bodyweight ? Math.max(log.weight, 1) : log.weight;
+    const w = log.setType === "rep"
+      ? (log.bodyweight ? Math.max(log.weight, 1) : log.weight)
+      : 1;
     return sum + log.sets * log.effortPerSet * w;
   }, 0);
 }
