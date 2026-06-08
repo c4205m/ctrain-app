@@ -1,73 +1,22 @@
-# React + TypeScript + Vite
+# cTrain
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A workout tracker that runs in your browser. No accounts, no backend. Everything is stored locally on your device via IndexedDB.
 
-Currently, two official plugins are available:
+## What it does
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Log exercises by reps, distance, or duration. Weight is optional; bodyweight is supported.
+- Tracks personal records per exercise. If you beat your previous best, it updates automatically.
+- Muscle heatmap shows what you've been training and what you've been skipping.
+- Plans let you group exercises into a workout with an estimated duration based on your logs.
+- The stopwatch has a guided mode that walks you through a plan set by set, with lap splits.
+- Stats on the home screen: streak, weekly sets, volume, monthly PRs. You can hide the ones you don't care about.
+- The "Long time..." section shows exercises you haven't touched in 2+ weeks.
+- Settings has import/export — your data is a JSON file you control.
 
-## React Compiler
+## Data and privacy
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Everything lives in your browser's IndexedDB. Nothing is sent anywhere. If you clear your browser data, your logs go with it. Use Settings → Export to keep a backup.
 
-## Expanding the ESLint configuration
+## License
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+GPL-3.0
