@@ -10,6 +10,9 @@ export const STAT_KEYS = [
   "daysSinceLastLog",
   "mostTrainedMuscle",
   "mostNeglectedMuscle",
+  "weight",
+  "height",
+  "bmi",
 ] as const;
 
 export type StatKey = (typeof STAT_KEYS)[number];
@@ -23,6 +26,9 @@ export const STAT_LABELS: Record<StatKey, string> = {
   daysSinceLastLog: "Days Since Last Log",
   mostTrainedMuscle: "Most Trained Muscle",
   mostNeglectedMuscle: "Most Neglected Muscle",
+  weight: "Weight",
+  height: "Height",
+  bmi: "BMI",
 };
 
 interface SettingsState {

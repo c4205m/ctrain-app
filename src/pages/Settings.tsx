@@ -1,12 +1,13 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { exportData, importData, isValidBackup, type BackupShape } from "../db/db";
+import { db, exportData, importData, isValidBackup, type BackupShape } from "../db/db";
 import { useSettingsStore, STAT_KEYS, STAT_LABELS } from "../store/settingsStore";
 import { useFilterStore } from "../store/filterStore";
 import Button from "../components/Button";
 import Toggle from "../components/Toggle";
+import Input from "../components/Input";
 
 export default function Settings() {
   const fileRef = useRef<HTMLInputElement>(null);
@@ -14,6 +15,39 @@ export default function Settings() {
   const [importing, setImporting] = useState(false);
   const { visibleStats, setStatVisible } = useSettingsStore();
   const { filterMode, setFilterMode } = useFilterStore();
+
+  const [userWeight, setUserWeight] = useState<number | "">("");
+  const [userHeight, setUserHeight] = useState<number | "">("");
+  const [exerciseCount, setExerciseCount] = useState<number | null>(null);
+  const [planCount, setPlanCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    db.user.toArray().then((users) => {
+      if (users[0]) {
+        setUserWeight(users[0].weight);
+        if (users[0].height) setUserHeight(users[0].height);
+      }
+    });
+    db.exercises.count().then(setExerciseCount);
+    db.plans.count().then(setPlanCount);
+  }, []);
+
+  const bmiPreview = userWeight && userHeight
+    ? (Number(userWeight) / Math.pow(Number(userHeight) / 100, 2)).toFixed(1)
+    : null;
+
+  async function handleProfileSave() {
+    if (userWeight === "" || userWeight <= 0) return;
+    const data: { weight: number; height?: number } = { weight: userWeight };
+    if (userHeight !== "" && userHeight > 0) data.height = userHeight;
+    const users = await db.user.toArray();
+    if (users[0]?.id != null) {
+      await db.user.update(users[0].id, data);
+    } else {
+      await db.user.add(data);
+    }
+    toast.success("Profile saved");
+  }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -65,8 +99,59 @@ export default function Settings() {
         <h1 className="font-heading font-bold text-[32px] leading-none text-zinc-900 mb-1">Settings</h1>
       </div>
 
+      <div className="bg-zinc-100 rounded-2xl p-4 shadow-sm mb-3">
+        <h2 className="font-heading font-semibold text-base text-zinc-900 mb-4">Profile</h2>
+        <div className="flex gap-3 mb-3">
+          <Input
+            label="Weight (kg)"
+            type="number"
+            inputMode="decimal"
+            value={userWeight}
+            min={1}
+            max={300}
+            step={0.1}
+            onChange={(e) => setUserWeight(e.target.value === "" ? "" : parseFloat(e.target.value))}
+            wrapperClassName="flex-1"
+          />
+          <Input
+            label="Height (cm)"
+            type="number"
+            inputMode="decimal"
+            value={userHeight}
+            min={50}
+            max={250}
+            step={0.1}
+            onChange={(e) => setUserHeight(e.target.value === "" ? "" : parseFloat(e.target.value))}
+            wrapperClassName="flex-1"
+          />
+        </div>
+        <div className="flex items-center justify-between">
+          {bmiPreview ? (
+            <span className="text-sm text-zinc-500">
+              BMI <span className="font-semibold text-zinc-900">{bmiPreview}</span>
+            </span>
+          ) : (
+            <span />
+          )}
+          <Button variant="secondary" size="sm" onClick={handleProfileSave}>
+            Save
+          </Button>
+        </div>
+      </div>
+
       <div className="bg-zinc-100 rounded-2xl p-4 shadow-sm">
         <h2 className="font-heading font-semibold text-base text-zinc-900 mb-4">Data</h2>
+
+        <div className="flex gap-4 mb-4">
+          <div className="flex-1 bg-white rounded-xl px-3 py-2">
+            <p className="text-xs text-zinc-400">Exercises</p>
+            <p className="text-lg font-bold text-zinc-900 leading-tight">{exerciseCount ?? "—"}</p>
+          </div>
+          <div className="flex-1 bg-white rounded-xl px-3 py-2">
+            <p className="text-xs text-zinc-400">Plans</p>
+            <p className="text-lg font-bold text-zinc-900 leading-tight">{planCount ?? "—"}</p>
+          </div>
+        </div>
 
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between">

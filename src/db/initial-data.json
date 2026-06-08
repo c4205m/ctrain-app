@@ -1,399 +1,690 @@
 {
-  "user": {
-    "weight": 0
-  },
+  "user": { "weight": 0 },
   "equipment": [
-    {
-      "id": "eq-02",
-      "name": "Dumbbells"
-    },
-    {
-      "id": "eq-03",
-      "name": "Barbell"
-    },
-    {
-      "id": "eq-04",
-      "name": "Kettlebell"
-    },
-    {
-      "id": "eq-05",
-      "name": "Resistance Bands"
-    },
-    {
-      "id": "eq-06",
-      "name": "Pull Up Bar"
-    },
-    {
-      "id": "eq-07",
-      "name": "Bench"
-    },
-    {
-      "id": "eq-08",
-      "name": "Medicine Ball"
-    },
-    {
-      "id": "eq-09",
-      "name": "Jump Rope"
-    },
-    {
-      "id": "eq-10",
-      "name": "Yoga Mat"
-    },
-    {
-      "id": "eq-11",
-      "name": "Foam Roller"
-    },
-    {
-      "id": "eq-12",
-      "name": "Suspension Trainer"
-    },
-    {
-      "id": "eq-13",
-      "name": "Dip Station"
-    },
-    {
-      "id": "eq-14",
-      "name": "Ab Wheel"
-    },
-    {
-      "id": "eq-15",
-      "name": "Bosu Ball"
-    },
-    {
-      "id": "eq-16",
-      "name": "Treadmill"
-    },
-    {
-      "id": "eq-17",
-      "name": "Stair Climber"
-    },
-    {
-      "id": "eq-18",
-      "name": "Elliptical"
-    },
-    {
-      "id": "eq-19",
-      "name": "Rowing Machine"
-    },
-    {
-      "id": "eq-20",
-      "name": "Leg Press"
-    },
-    {
-      "id": "eq-21",
-      "name": "Chest Press"
-    },
-    {
-      "id": "eq-22",
-      "name": "Lat Pulldown"
-    },
-    {
-      "id": "eq-23",
-      "name": "Leg Curl"
-    },
-    {
-      "id": "eq-24",
-      "name": "Leg Extension"
-    },
-    {
-      "id": "eq-25",
-      "name": "Shoulder Press"
-    },
-    {
-      "id": "eq-26",
-      "name": "Ab Machine"
-    },
-    {
-      "id": "eq-27",
-      "name": "Back Extension"
-    },
-    {
-      "id": "eq-28",
-      "name": "Lateral Raise Machine"
-    },
-    {
-      "id": "eq-29",
-      "name": "Bicep Curl Machine"
-    },
-    {
-      "id": "eq-30",
-      "name": "Tricep Dip Machine"
-    },
-    {
-      "id": "eq-31",
-      "name": "Cable Flye"
-    },
-    {
-      "id": "eq-32",
-      "name": "Smith Machine"
-    },
-    {
-      "id": "eq-33",
-      "name": "Hack Squat Machine"
-    }
+    { "id": "eq-02", "name": "Dumbbells" },
+    { "id": "eq-03", "name": "Barbell" },
+    { "id": "eq-04", "name": "Kettlebell" },
+    { "id": "eq-05", "name": "Resistance Bands" },
+    { "id": "eq-06", "name": "Pull Up Bar" },
+    { "id": "eq-07", "name": "Bench" },
+    { "id": "eq-08", "name": "Medicine Ball" },
+    { "id": "eq-09", "name": "Jump Rope" },
+    { "id": "eq-10", "name": "Yoga Mat" },
+    { "id": "eq-11", "name": "Foam Roller" },
+    { "id": "eq-12", "name": "Suspension Trainer" },
+    { "id": "eq-13", "name": "Dip Station" },
+    { "id": "eq-14", "name": "Ab Wheel" },
+    { "id": "eq-15", "name": "Bosu Ball" },
+    { "id": "eq-16", "name": "Treadmill" },
+    { "id": "eq-17", "name": "Stair Climber" },
+    { "id": "eq-18", "name": "Elliptical" },
+    { "id": "eq-19", "name": "Rowing Machine" },
+    { "id": "eq-20", "name": "Leg Press" },
+    { "id": "eq-21", "name": "Chest Press Machine" },
+    { "id": "eq-22", "name": "Lat Pulldown Machine" },
+    { "id": "eq-23", "name": "Leg Curl Machine" },
+    { "id": "eq-24", "name": "Leg Extension Machine" },
+    { "id": "eq-25", "name": "Shoulder Press Machine" },
+    { "id": "eq-26", "name": "Ab Machine" },
+    { "id": "eq-27", "name": "Back Extension" },
+    { "id": "eq-28", "name": "Lateral Raise Machine" },
+    { "id": "eq-29", "name": "Bicep Curl Machine" },
+    { "id": "eq-30", "name": "Tricep Dip Machine" },
+    { "id": "eq-31", "name": "Cable Machine" },
+    { "id": "eq-32", "name": "Smith Machine" },
+    { "id": "eq-33", "name": "Hack Squat Machine" }
   ],
   "movementTypes": [
+    { "id": "mt-01", "name": "Push" },
+    { "id": "mt-02", "name": "Pull" },
+    { "id": "mt-03", "name": "Squat" },
+    { "id": "mt-04", "name": "Hinge" },
+    { "id": "mt-05", "name": "Carry" },
+    { "id": "mt-06", "name": "Press" },
+    { "id": "mt-07", "name": "Row" },
+    { "id": "mt-08", "name": "Curl" },
+    { "id": "mt-09", "name": "Extension" },
+    { "id": "mt-10", "name": "Rotation" },
+    { "id": "mt-11", "name": "Lunge" },
+    { "id": "mt-12", "name": "Lateral" },
+    { "id": "mt-13", "name": "Compound" },
+    { "id": "mt-14", "name": "Isolation" },
+    { "id": "mt-15", "name": "Cardio" },
+    { "id": "mt-16", "name": "Plyometric" },
+    { "id": "mt-17", "name": "Isometric" },
+    { "id": "mt-18", "name": "Dynamic" }
+  ],
+  "exercises": [
     {
-      "id": "mt-01",
-      "name": "Push"
+      "id": "ex-01",
+      "name": "Barbell Bench Press",
+      "muscles": ["chest", "front-deltoids", "triceps"],
+      "difficulty": "Intermediate",
+      "tools": ["Barbell", "Bench"],
+      "movementType": ["Press", "Compound"]
     },
     {
-      "id": "mt-02",
-      "name": "Pull"
+      "id": "ex-02",
+      "name": "Overhead Press (Barbell)",
+      "muscles": ["front-deltoids", "triceps", "trapezius"],
+      "difficulty": "Intermediate",
+      "tools": ["Barbell"],
+      "movementType": ["Press", "Compound"]
     },
     {
-      "id": "mt-03",
-      "name": "Squat"
+      "id": "ex-03",
+      "name": "Incline Dumbbell Press",
+      "muscles": ["chest", "front-deltoids"],
+      "difficulty": "Intermediate",
+      "tools": ["Dumbbells", "Bench"],
+      "movementType": ["Press"]
     },
     {
-      "id": "mt-04",
-      "name": "Hinge"
+      "id": "ex-04",
+      "name": "Tricep Pushdown",
+      "muscles": ["triceps"],
+      "difficulty": "Beginner",
+      "tools": ["Cable Machine"],
+      "movementType": ["Extension", "Isolation"]
     },
     {
-      "id": "mt-05",
-      "name": "Carry"
+      "id": "ex-05",
+      "name": "Overhead Tricep Extension",
+      "muscles": ["triceps"],
+      "difficulty": "Beginner",
+      "tools": ["Dumbbells", "Cable Machine"],
+      "movementType": ["Extension", "Isolation"]
     },
     {
-      "id": "mt-06",
-      "name": "Press"
+      "id": "ex-06",
+      "name": "Deadlift (Conventional)",
+      "muscles": ["lower-back", "hamstring", "gluteal", "upper-back"],
+      "difficulty": "Advanced",
+      "tools": ["Barbell"],
+      "movementType": ["Hinge", "Compound"]
     },
     {
-      "id": "mt-07",
-      "name": "Row"
+      "id": "ex-07",
+      "name": "Lat Pulldown",
+      "muscles": ["upper-back", "biceps"],
+      "difficulty": "Beginner",
+      "tools": ["Cable Machine"],
+      "movementType": ["Pull", "Isolation"]
     },
     {
-      "id": "mt-08",
-      "name": "Curl"
+      "id": "ex-08",
+      "name": "Seated Cable Row",
+      "muscles": ["upper-back", "biceps"],
+      "difficulty": "Beginner",
+      "tools": ["Cable Machine"],
+      "movementType": ["Row"]
     },
     {
-      "id": "mt-09",
-      "name": "Extension"
+      "id": "ex-09",
+      "name": "Face Pull",
+      "muscles": ["back-deltoids", "trapezius"],
+      "difficulty": "Beginner",
+      "tools": ["Cable Machine", "Resistance Bands"],
+      "movementType": ["Pull", "Isolation"]
     },
     {
-      "id": "mt-10",
-      "name": "Rotation"
+      "id": "ex-10",
+      "name": "Hammer Curl",
+      "muscles": ["biceps", "forearm"],
+      "difficulty": "Beginner",
+      "tools": ["Dumbbells"],
+      "movementType": ["Curl", "Isolation"]
     },
     {
-      "id": "mt-11",
-      "name": "Lunge"
+      "id": "ex-11",
+      "name": "Dumbbell Curl",
+      "muscles": ["biceps"],
+      "difficulty": "Beginner",
+      "tools": ["Dumbbells"],
+      "movementType": ["Curl", "Isolation"]
     },
     {
-      "id": "mt-12",
-      "name": "Lateral"
+      "id": "ex-12",
+      "name": "Barbell Row (Bent Over)",
+      "muscles": ["upper-back", "biceps", "lower-back"],
+      "difficulty": "Intermediate",
+      "tools": ["Barbell"],
+      "movementType": ["Row", "Compound"]
     },
     {
-      "id": "mt-13",
-      "name": "Compound"
+      "id": "ex-13",
+      "name": "Barbell Back Squat",
+      "muscles": ["quadriceps", "gluteal", "hamstring"],
+      "difficulty": "Intermediate",
+      "tools": ["Barbell"],
+      "movementType": ["Squat", "Compound"]
     },
     {
-      "id": "mt-14",
-      "name": "Isolation"
+      "id": "ex-14",
+      "name": "Romanian Deadlift",
+      "muscles": ["hamstring", "gluteal", "lower-back"],
+      "difficulty": "Intermediate",
+      "tools": ["Barbell"],
+      "movementType": ["Hinge", "Compound"]
     },
     {
-      "id": "mt-15",
-      "name": "Cardio"
+      "id": "ex-15",
+      "name": "Leg Press",
+      "muscles": ["quadriceps", "gluteal"],
+      "difficulty": "Beginner",
+      "tools": ["Leg Press"],
+      "movementType": ["Press", "Isolation"]
     },
     {
-      "id": "mt-16",
-      "name": "Plyometric"
+      "id": "ex-16",
+      "name": "Leg Curl (Lying)",
+      "muscles": ["hamstring"],
+      "difficulty": "Beginner",
+      "tools": ["Leg Curl Machine"],
+      "movementType": ["Isolation"]
     },
     {
-      "id": "mt-17",
-      "name": "Isometric"
+      "id": "ex-17",
+      "name": "Calf Raise (Standing)",
+      "muscles": ["calves"],
+      "difficulty": "Beginner",
+      "tools": ["Barbell"],
+      "movementType": ["Isolation"]
     },
     {
-      "id": "mt-18",
-      "name": "Dynamic"
+      "id": "ex-18",
+      "name": "Overhead Press (Dumbbell)",
+      "muscles": ["front-deltoids", "triceps"],
+      "difficulty": "Beginner",
+      "tools": ["Dumbbells"],
+      "movementType": ["Press", "Compound"]
+    },
+    {
+      "id": "ex-19",
+      "name": "Pull Up",
+      "muscles": ["upper-back", "biceps"],
+      "difficulty": "Intermediate",
+      "tools": ["Pull Up Bar"],
+      "movementType": ["Pull", "Compound"]
+    },
+    {
+      "id": "ex-20",
+      "name": "Front Squat",
+      "muscles": ["quadriceps", "front-deltoids", "upper-back"],
+      "difficulty": "Advanced",
+      "tools": ["Barbell"],
+      "movementType": ["Squat", "Compound"]
+    },
+    {
+      "id": "ex-21",
+      "name": "Bulgarian Split Squat",
+      "muscles": ["quadriceps", "gluteal"],
+      "difficulty": "Intermediate",
+      "tools": ["Dumbbells", "Bench"],
+      "movementType": ["Lunge", "Compound"]
+    },
+    {
+      "id": "ex-22",
+      "name": "Hanging Leg Raise",
+      "muscles": ["abs", "obliques"],
+      "difficulty": "Intermediate",
+      "tools": ["Pull Up Bar"],
+      "movementType": ["Isometric", "Isolation"]
+    },
+    {
+      "id": "ex-23",
+      "name": "Calf Raise (Seated)",
+      "muscles": ["calves"],
+      "difficulty": "Beginner",
+      "tools": [],
+      "movementType": ["Isolation"]
+    },
+    {
+      "id": "ex-24",
+      "name": "Cable Chest Fly",
+      "muscles": ["chest"],
+      "difficulty": "Intermediate",
+      "tools": ["Cable Machine"],
+      "movementType": ["Isolation"]
+    },
+    {
+      "id": "ex-25",
+      "name": "Dip (Chest-Focused)",
+      "muscles": ["chest", "triceps", "front-deltoids"],
+      "difficulty": "Intermediate",
+      "tools": ["Pull Up Bar"],
+      "movementType": ["Press", "Compound"]
+    },
+    {
+      "id": "ex-26",
+      "name": "Narrow-Grip Dumbbell Press",
+      "muscles": ["chest", "triceps"],
+      "difficulty": "Intermediate",
+      "tools": ["Dumbbells", "Bench"],
+      "movementType": ["Press", "Isolation"]
+    },
+    {
+      "id": "ex-27",
+      "name": "Single-Arm Dumbbell Row",
+      "muscles": ["upper-back", "biceps"],
+      "difficulty": "Beginner",
+      "tools": ["Dumbbells"],
+      "movementType": ["Row"]
+    },
+    {
+      "id": "ex-28",
+      "name": "Reverse Fly (Dumbbell)",
+      "muscles": ["back-deltoids", "trapezius"],
+      "difficulty": "Beginner",
+      "tools": ["Dumbbells"],
+      "movementType": ["Lateral", "Isolation"]
+    },
+    {
+      "id": "ex-29",
+      "name": "Farmer's Carry",
+      "muscles": ["forearm", "trapezius", "gluteal"],
+      "difficulty": "Beginner",
+      "tools": ["Dumbbells"],
+      "movementType": ["Carry"]
+    },
+    {
+      "id": "ex-30",
+      "name": "Seated Dumbbell Shoulder Press",
+      "muscles": ["front-deltoids", "triceps", "trapezius"],
+      "difficulty": "Beginner",
+      "tools": ["Dumbbells", "Bench"],
+      "movementType": ["Press", "Compound"]
+    },
+    {
+      "id": "ex-31",
+      "name": "Lateral Raise (Dumbbell)",
+      "muscles": ["back-deltoids"],
+      "difficulty": "Beginner",
+      "tools": ["Dumbbells"],
+      "movementType": ["Lateral", "Isolation"]
+    },
+    {
+      "id": "ex-32",
+      "name": "Front Raise (Barbell)",
+      "muscles": ["front-deltoids"],
+      "difficulty": "Beginner",
+      "tools": ["Barbell"],
+      "movementType": ["Lateral", "Isolation"]
+    },
+    {
+      "id": "ex-33",
+      "name": "Rear Delt Fly (Cable)",
+      "muscles": ["back-deltoids", "trapezius"],
+      "difficulty": "Beginner",
+      "tools": ["Cable Machine"],
+      "movementType": ["Lateral", "Isolation"]
+    },
+    {
+      "id": "ex-34",
+      "name": "Dumbbell Shrug",
+      "muscles": ["trapezius"],
+      "difficulty": "Beginner",
+      "tools": ["Dumbbells"],
+      "movementType": ["Isolation"]
+    },
+    {
+      "id": "ex-35",
+      "name": "Barbell Curl",
+      "muscles": ["biceps"],
+      "difficulty": "Beginner",
+      "tools": ["Barbell"],
+      "movementType": ["Curl", "Isolation"]
+    },
+    {
+      "id": "ex-36",
+      "name": "Skull Crusher",
+      "muscles": ["triceps"],
+      "difficulty": "Intermediate",
+      "tools": ["Barbell"],
+      "movementType": ["Extension", "Isolation"]
+    },
+    {
+      "id": "ex-37",
+      "name": "Incline Dumbbell Curl",
+      "muscles": ["biceps"],
+      "difficulty": "Beginner",
+      "tools": ["Dumbbells", "Bench"],
+      "movementType": ["Curl", "Isolation"]
+    },
+    {
+      "id": "ex-38",
+      "name": "Dumbbell Lunge",
+      "muscles": ["quadriceps", "gluteal", "hamstring"],
+      "difficulty": "Beginner",
+      "tools": ["Dumbbells"],
+      "movementType": ["Lunge", "Compound"]
+    },
+    {
+      "id": "ex-39",
+      "name": "Push Up",
+      "muscles": ["chest", "front-deltoids", "triceps"],
+      "difficulty": "Beginner",
+      "tools": [],
+      "movementType": ["Push", "Compound"]
+    },
+    {
+      "id": "ex-40",
+      "name": "Pike Push Up",
+      "muscles": ["front-deltoids", "triceps"],
+      "difficulty": "Beginner",
+      "tools": [],
+      "movementType": ["Push"]
+    },
+    {
+      "id": "ex-41",
+      "name": "Tricep Dip (Bench)",
+      "muscles": ["triceps", "front-deltoids"],
+      "difficulty": "Beginner",
+      "tools": ["Bench"],
+      "movementType": ["Extension", "Push"]
+    },
+    {
+      "id": "ex-42",
+      "name": "Diamond Push Up",
+      "muscles": ["triceps", "chest"],
+      "difficulty": "Beginner",
+      "tools": [],
+      "movementType": ["Push", "Isolation"]
+    },
+    {
+      "id": "ex-43",
+      "name": "Plank",
+      "muscles": ["abs", "lower-back"],
+      "difficulty": "Beginner",
+      "tools": [],
+      "movementType": ["Isometric"]
+    },
+    {
+      "id": "ex-44",
+      "name": "Australian Pull Up",
+      "muscles": ["upper-back", "biceps", "back-deltoids"],
+      "difficulty": "Beginner",
+      "tools": ["Pull Up Bar"],
+      "movementType": ["Row", "Pull"]
+    },
+    {
+      "id": "ex-45",
+      "name": "Dead Hang",
+      "muscles": ["forearm", "upper-back"],
+      "difficulty": "Beginner",
+      "tools": ["Pull Up Bar"],
+      "movementType": ["Isometric"]
+    },
+    {
+      "id": "ex-46",
+      "name": "Chin Up",
+      "muscles": ["biceps", "upper-back"],
+      "difficulty": "Intermediate",
+      "tools": ["Pull Up Bar"],
+      "movementType": ["Pull", "Compound"]
+    },
+    {
+      "id": "ex-47",
+      "name": "Air Squat",
+      "muscles": ["quadriceps", "gluteal"],
+      "difficulty": "Beginner",
+      "tools": [],
+      "movementType": ["Squat"]
+    },
+    {
+      "id": "ex-48",
+      "name": "Jump Squat",
+      "muscles": ["quadriceps", "gluteal", "calves"],
+      "difficulty": "Beginner",
+      "tools": [],
+      "movementType": ["Plyometric", "Squat"]
+    },
+    {
+      "id": "ex-49",
+      "name": "Glute Bridge",
+      "muscles": ["gluteal", "hamstring"],
+      "difficulty": "Beginner",
+      "tools": [],
+      "movementType": ["Hinge", "Isolation"]
+    },
+    {
+      "id": "ex-50",
+      "name": "Reverse Lunge",
+      "muscles": ["quadriceps", "gluteal"],
+      "difficulty": "Beginner",
+      "tools": [],
+      "movementType": ["Lunge"]
+    },
+    {
+      "id": "ex-51",
+      "name": "Hollow Body Hold",
+      "muscles": ["abs", "lower-back"],
+      "difficulty": "Intermediate",
+      "tools": [],
+      "movementType": ["Isometric"]
+    },
+    {
+      "id": "ex-52",
+      "name": "Calf Raise (Bodyweight)",
+      "muscles": ["calves"],
+      "difficulty": "Beginner",
+      "tools": [],
+      "movementType": ["Isolation"]
     }
   ],
   "plans": [
     {
       "id": "plan-01",
-      "name": "Full Body Starter 1",
-      "description": "Beginner-friendly full body session. No equipment needed.",
-      "createdAt": "2026-05-03T00:00:00.000Z",
+      "name": "PPL — Push Day",
+      "description": "Reddit PPL push session. Barbell strength first, isolation work after. Source: Metallicadpa's PPL — reddit.com/r/Fitness",
+      "createdAt": "2026-01-01T00:00:00.000Z",
       "exercises": [
-        {
-          "exerciseId": "ex-01",
-          "sets": 3,
-          "reps": 12
-        },
-        {
-          "exerciseId": "ex-03",
-          "sets": 3,
-          "reps": 1
-        },
-        {
-          "exerciseId": "ex-05",
-          "sets": 3,
-          "reps": 8
-        }
+        { "exerciseId": "ex-01", "sets": 4, "reps": 5 },
+        { "exerciseId": "ex-02", "sets": 4, "reps": 5 },
+        { "exerciseId": "ex-03", "sets": 3, "reps": 10 },
+        { "exerciseId": "ex-04", "sets": 3, "reps": 10 },
+        { "exerciseId": "ex-05", "sets": 3, "reps": 10 }
       ],
       "duration": 0
     },
     {
       "id": "plan-02",
-      "name": "Full Body Starter 2",
-      "description": "Beginner-friendly full body session. No equipment needed.",
-      "createdAt": "2026-05-03T00:00:00.000Z",
+      "name": "PPL — Pull Day",
+      "description": "Reddit PPL pull session. Heavy deadlift, then lat and curl work. Source: Metallicadpa's PPL — reddit.com/r/Fitness",
+      "createdAt": "2026-01-01T00:00:00.000Z",
       "exercises": [
-        {
-          "exerciseId": "ex-03",
-          "sets": 3,
-          "reps": 1
-        },
-        {
-          "exerciseId": "ex-05",
-          "sets": 3,
-          "reps": 8
-        }
+        { "exerciseId": "ex-06", "sets": 1, "reps": 5 },
+        { "exerciseId": "ex-07", "sets": 3, "reps": 10 },
+        { "exerciseId": "ex-08", "sets": 3, "reps": 10 },
+        { "exerciseId": "ex-09", "sets": 3, "reps": 12 },
+        { "exerciseId": "ex-10", "sets": 3, "reps": 10 },
+        { "exerciseId": "ex-11", "sets": 3, "reps": 10 }
       ],
       "duration": 0
     },
     {
       "id": "plan-03",
-      "name": "Full Body Starter 3",
-      "description": "Beginner-friendly full body session. No equipment needed.",
-      "createdAt": "2026-05-03T00:00:00.000Z",
+      "name": "PPL — Legs",
+      "description": "Reddit PPL leg session. Squat-focused with hamstring and calf accessory. Source: Metallicadpa's PPL — reddit.com/r/Fitness",
+      "createdAt": "2026-01-01T00:00:00.000Z",
       "exercises": [
-        {
-          "exerciseId": "ex-01",
-          "sets": 3,
-          "reps": 12
-        },
-        {
-          "exerciseId": "ex-03",
-          "sets": 3,
-          "reps": 1
-        },
-        {
-          "exerciseId": "ex-05",
-          "sets": 3,
-          "reps": 8
-        }
+        { "exerciseId": "ex-13", "sets": 4, "reps": 5 },
+        { "exerciseId": "ex-14", "sets": 3, "reps": 10 },
+        { "exerciseId": "ex-15", "sets": 3, "reps": 10 },
+        { "exerciseId": "ex-16", "sets": 3, "reps": 10 },
+        { "exerciseId": "ex-17", "sets": 5, "reps": 10 }
       ],
       "duration": 0
     },
     {
       "id": "plan-04",
-      "name": "Full Body Starter 4",
-      "description": "Beginner-friendly full body session. No equipment needed.",
-      "createdAt": "2026-05-03T00:00:00.000Z",
+      "name": "StrongLifts 5x5 — Workout A",
+      "description": "Squat, bench, row. Add 2.5 kg each session. Source: stronglifts.com/stronglifts-5x5",
+      "createdAt": "2026-01-01T00:00:00.000Z",
       "exercises": [
-        {
-          "exerciseId": "ex-01",
-          "sets": 3,
-          "reps": 12
-        },
-        {
-          "exerciseId": "ex-02",
-          "sets": 3,
-          "reps": 15
-        },
-        {
-          "exerciseId": "ex-03",
-          "sets": 3,
-          "reps": 1
-        },
-        {
-          "exerciseId": "ex-05",
-          "sets": 3,
-          "reps": 8
-        }
+        { "exerciseId": "ex-13", "sets": 5, "reps": 5 },
+        { "exerciseId": "ex-01", "sets": 5, "reps": 5 },
+        { "exerciseId": "ex-12", "sets": 5, "reps": 5 }
       ],
       "duration": 0
-    }
-  ],
-  "exercises": [
-    {
-      "id": "ex-01",
-      "name": "Push-up",
-      "muscles": [
-        "chest",
-        "triceps",
-        "front-deltoids"
-      ],
-      "difficulty": "Beginner",
-      "tools": [],
-      "movementType": [
-        "Push"
-      ]
     },
     {
-      "id": "ex-02",
-      "name": "Bodyweight Squat",
-      "muscles": [
-        "quadriceps",
-        "gluteal",
-        "hamstring"
+      "id": "plan-05",
+      "name": "StrongLifts 5x5 — Workout B",
+      "description": "Squat, overhead press, deadlift. Alternates with Workout A. Source: stronglifts.com/stronglifts-5x5",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "exercises": [
+        { "exerciseId": "ex-13", "sets": 5, "reps": 5 },
+        { "exerciseId": "ex-02", "sets": 5, "reps": 5 },
+        { "exerciseId": "ex-06", "sets": 1, "reps": 5 }
       ],
-      "difficulty": "Beginner",
-      "tools": [],
-      "movementType": [
-        "Squat"
-      ]
+      "duration": 0
     },
     {
-      "id": "ex-03",
-      "name": "Plank",
-      "muscles": [
-        "abs",
-        "lower-back"
+      "id": "plan-06",
+      "name": "GZCLP — Upper Body",
+      "description": "Bench and row as primary lifts, dumbbell press and lat work as secondary. Source: GZCLP by Gzclmethod.com",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "exercises": [
+        { "exerciseId": "ex-01", "sets": 5, "reps": 3 },
+        { "exerciseId": "ex-12", "sets": 3, "reps": 10 },
+        { "exerciseId": "ex-18", "sets": 3, "reps": 10 },
+        { "exerciseId": "ex-07", "sets": 3, "reps": 15 },
+        { "exerciseId": "ex-11", "sets": 3, "reps": 15 },
+        { "exerciseId": "ex-04", "sets": 3, "reps": 15 }
       ],
-      "difficulty": "Intermediate",
-      "tools": [
-        "Yoga Mat"
-      ],
-      "movementType": [
-        "Isometric"
-      ]
+      "duration": 0
     },
     {
-      "id": "ex-04",
-      "name": "Deadlift",
-      "muscles": [
-        "lower-back",
-        "hamstring",
-        "gluteal",
-        "trapezius"
+      "id": "plan-07",
+      "name": "GZCLP — Lower Body",
+      "description": "Squat as primary, RDL and leg press as secondary, calf accessory. Source: GZCLP by Gzclmethod.com",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "exercises": [
+        { "exerciseId": "ex-13", "sets": 5, "reps": 3 },
+        { "exerciseId": "ex-14", "sets": 3, "reps": 10 },
+        { "exerciseId": "ex-15", "sets": 3, "reps": 15 },
+        { "exerciseId": "ex-16", "sets": 3, "reps": 15 },
+        { "exerciseId": "ex-23", "sets": 3, "reps": 15 }
       ],
-      "difficulty": "Advanced",
-      "tools": [
-        "Barbell"
-      ],
-      "movementType": [
-        "Hinge"
-      ]
+      "duration": 0
     },
     {
-      "id": "ex-05",
-      "name": "Pull-up",
-      "muscles": [
-        "upper-back",
-        "biceps"
+      "id": "plan-08",
+      "name": "Bro Split — Chest",
+      "description": "Chest day. Barbell strength, incline dumbbell, cable fly, dips. Source: Classic Bro Split — hevyapp.com",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "exercises": [
+        { "exerciseId": "ex-01", "sets": 4, "reps": 8 },
+        { "exerciseId": "ex-03", "sets": 3, "reps": 10 },
+        { "exerciseId": "ex-24", "sets": 3, "reps": 12 },
+        { "exerciseId": "ex-25", "sets": 3, "reps": 10 },
+        { "exerciseId": "ex-26", "sets": 3, "reps": 12 }
       ],
-      "difficulty": "Advanced",
-      "tools": [
-        "Pull Up Bar"
-      ],
-      "movementType": [
-        "Pull"
-      ]
+      "duration": 0
     },
     {
-      "id": "ex-06",
-      "name": "Dumbbell Curl",
-      "muscles": [
-        "biceps",
-        "forearm"
+      "id": "plan-09",
+      "name": "Bro Split — Back",
+      "description": "Back day. Pull ups, rows, lat pulldown, rear delt, carries. Source: Classic Bro Split — hevyapp.com",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "exercises": [
+        { "exerciseId": "ex-19", "sets": 4, "reps": 8 },
+        { "exerciseId": "ex-27", "sets": 4, "reps": 10 },
+        { "exerciseId": "ex-08", "sets": 4, "reps": 10 },
+        { "exerciseId": "ex-07", "sets": 3, "reps": 10 },
+        { "exerciseId": "ex-28", "sets": 3, "reps": 12 },
+        { "exerciseId": "ex-29", "sets": 3, "reps": 1 }
       ],
-      "difficulty": "Beginner",
-      "tools": [
-        "Dumbbells"
+      "duration": 0
+    },
+    {
+      "id": "plan-10",
+      "name": "Bro Split — Shoulders",
+      "description": "Shoulder day. Seated press, lateral raise, front raise, face pull. Source: Classic Bro Split — hevyapp.com",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "exercises": [
+        { "exerciseId": "ex-30", "sets": 4, "reps": 10 },
+        { "exerciseId": "ex-31", "sets": 3, "reps": 12 },
+        { "exerciseId": "ex-32", "sets": 3, "reps": 10 },
+        { "exerciseId": "ex-33", "sets": 3, "reps": 12 },
+        { "exerciseId": "ex-34", "sets": 4, "reps": 12 },
+        { "exerciseId": "ex-09", "sets": 3, "reps": 15 }
       ],
-      "movementType": [
-        "Curl"
-      ]
+      "duration": 0
+    },
+    {
+      "id": "plan-11",
+      "name": "Bro Split — Arms",
+      "description": "Arms day. Barbell curl, skull crusher, isolation curls and extensions. Source: Classic Bro Split — hevyapp.com",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "exercises": [
+        { "exerciseId": "ex-35", "sets": 4, "reps": 10 },
+        { "exerciseId": "ex-36", "sets": 4, "reps": 10 },
+        { "exerciseId": "ex-37", "sets": 3, "reps": 10 },
+        { "exerciseId": "ex-04", "sets": 3, "reps": 12 },
+        { "exerciseId": "ex-10", "sets": 3, "reps": 10 },
+        { "exerciseId": "ex-05", "sets": 3, "reps": 12 }
+      ],
+      "duration": 0
+    },
+    {
+      "id": "plan-12",
+      "name": "Bro Split — Legs",
+      "description": "Legs day. Squat, RDL, leg press, curls, lunges, calves, core. Source: Classic Bro Split — hevyapp.com",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "exercises": [
+        { "exerciseId": "ex-13", "sets": 4, "reps": 8 },
+        { "exerciseId": "ex-14", "sets": 3, "reps": 10 },
+        { "exerciseId": "ex-15", "sets": 4, "reps": 10 },
+        { "exerciseId": "ex-16", "sets": 4, "reps": 10 },
+        { "exerciseId": "ex-38", "sets": 3, "reps": 12 },
+        { "exerciseId": "ex-23", "sets": 3, "reps": 15 },
+        { "exerciseId": "ex-22", "sets": 3, "reps": 10 }
+      ],
+      "duration": 0
+    },
+    {
+      "id": "plan-13",
+      "name": "Calisthenics — Push",
+      "description": "Bodyweight push session. Push ups, pike push ups, dips, plank. Source: simple-calisthenics.com",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "exercises": [
+        { "exerciseId": "ex-39", "sets": 4, "reps": 15 },
+        { "exerciseId": "ex-40", "sets": 3, "reps": 10 },
+        { "exerciseId": "ex-41", "sets": 3, "reps": 12 },
+        { "exerciseId": "ex-42", "sets": 3, "reps": 10 },
+        { "exerciseId": "ex-43", "sets": 3, "reps": 1 }
+      ],
+      "duration": 0
+    },
+    {
+      "id": "plan-14",
+      "name": "Calisthenics — Pull",
+      "description": "Bodyweight pull session. Pull ups, inverted rows, chin ups, dead hang. Source: simple-calisthenics.com",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "exercises": [
+        { "exerciseId": "ex-19", "sets": 4, "reps": 8 },
+        { "exerciseId": "ex-44", "sets": 4, "reps": 12 },
+        { "exerciseId": "ex-45", "sets": 3, "reps": 1 },
+        { "exerciseId": "ex-46", "sets": 3, "reps": 8 }
+      ],
+      "duration": 0
+    },
+    {
+      "id": "plan-15",
+      "name": "Calisthenics — Legs & Core",
+      "description": "Bodyweight legs and core. Squats, lunges, glute bridge, hollow body. Source: simple-calisthenics.com",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "exercises": [
+        { "exerciseId": "ex-47", "sets": 4, "reps": 20 },
+        { "exerciseId": "ex-48", "sets": 3, "reps": 15 },
+        { "exerciseId": "ex-49", "sets": 3, "reps": 15 },
+        { "exerciseId": "ex-50", "sets": 3, "reps": 12 },
+        { "exerciseId": "ex-51", "sets": 3, "reps": 1 },
+        { "exerciseId": "ex-52", "sets": 4, "reps": 20 }
+      ],
+      "duration": 0
     }
   ]
 }

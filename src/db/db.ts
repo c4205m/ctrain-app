@@ -64,6 +64,7 @@ export async function updatePlansForExercise(exerciseId: string): Promise<void> 
 export interface User {
   id?: number
   weight: number
+  height?: number
 }
 
 export interface Equipment {
