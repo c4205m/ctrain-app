@@ -7,6 +7,7 @@ interface SegmentedControlProps<T extends string> {
   selected: T;
   onChange: (selected: T) => void;
   variant?: Variant;
+  disabled?: boolean;
 }
 
 const WRAPPER_CLASSES: Record<Variant, string> = {
@@ -30,22 +31,27 @@ export default function SegmentedControl<T extends string>({
   selected,
   onChange,
   variant = "default",
+  disabled = false,
 }: SegmentedControlProps<T>) {
   return (
     <div className={WRAPPER_CLASSES[variant]}>
-      {options.map((opt) => (
-        <motion.button
-          key={opt}
-          type="button"
-          onClick={() => onChange(opt)}
-          whileTap={{ scale: 0.94 }}
-          transition={{ type: "spring", stiffness: 400, damping: 17 }}
-          style={{ willChange: "transform" }}
-          className={`${BUTTON_BASE[variant]} ${selected === opt ? ACTIVE_CLASSES[variant] : INACTIVE_CLASSES[variant]}`}
-        >
-          {opt}
-        </motion.button>
-      ))}
+      {options.map((opt) => {
+        const isActive = selected === opt;
+        const isLocked = disabled && !isActive;
+        return (
+          <motion.button
+            key={opt}
+            type="button"
+            onClick={() => !isLocked && onChange(opt)}
+            whileTap={isLocked ? undefined : { scale: 0.94 }}
+            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+            style={{ willChange: "transform" }}
+            className={`${BUTTON_BASE[variant]} ${isActive ? ACTIVE_CLASSES[variant] : INACTIVE_CLASSES[variant]} ${isLocked ? "opacity-30 cursor-not-allowed" : ""}`}
+          >
+            {opt}
+          </motion.button>
+        );
+      })}
     </div>
   );
 }

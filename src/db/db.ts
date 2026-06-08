@@ -202,15 +202,24 @@ export async function resetLogs(exerciseId: string): Promise<void> {
 export async function deleteExercise(id: string): Promise<void> {
   await db.exercises.delete(id)
   const plans = await db.plans.toArray()
+  const affected = plans.filter((p) => p.exercises.some((e) => e.exerciseId === id))
+  if (affected.length === 0) return
+
+  const remainingIds = [...new Set(
+    affected.flatMap((p) => p.exercises.filter((e) => e.exerciseId !== id).map((e) => e.exerciseId))
+  )]
+  const exRecords = await db.exercises.bulkGet(remainingIds)
+  const durations: Record<string, number | undefined> = {}
+  exRecords.forEach((ex, i) => { durations[remainingIds[i]] = ex?.latestLog?.duration })
+
   await Promise.all(
-    plans
-      .filter((p) => p.exercises.some((e) => e.exerciseId === id))
-      .map((p) =>
-        db.plans.put({
-          ...p,
-          exercises: p.exercises.filter((e) => e.exerciseId !== id),
-          duration: calcPlanDuration(p.exercises.filter((e) => e.exerciseId !== id)),
-        })
-      )
+    affected.map((p) => {
+      const remaining = p.exercises.filter((e) => e.exerciseId !== id)
+      return db.plans.put({
+        ...p,
+        exercises: remaining,
+        duration: calcPlanDuration(remaining.map((e) => ({ ...e, logDuration: durations[e.exerciseId] }))),
+      })
+    })
   )
 }

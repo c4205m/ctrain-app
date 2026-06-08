@@ -15,6 +15,12 @@ interface LogModalProps {
 }
 
 const SET_TYPES: Log["setType"][] = ["rep", "distance", "duration"];
+
+function volumeOf(log: Log): number {
+  if (log.setType !== "rep") return log.sets * log.effortPerSet;
+  const w = log.bodyweight ? Math.max(log.weight, 1) : log.weight;
+  return log.sets * log.effortPerSet * w;
+}
 const SET_TYPE_LABELS: Record<Log["setType"], string> = {
   rep: "Reps",
   distance: "Distance (m)",
@@ -22,6 +28,7 @@ const SET_TYPE_LABELS: Record<Log["setType"], string> = {
 };
 
 export default function LogModal({ exercise, isOpen, onClose, prefill }: LogModalProps) {
+  const isSetTypeLocked = exercise?.latestLog != null;
   const [sets, setSets] = useState(3);
   const [effort, setEffort] = useState(10);
   const [setType, setSetType] = useState<Log["setType"]>("rep");
@@ -62,10 +69,8 @@ export default function LogModal({ exercise, isOpen, onClose, prefill }: LogModa
       weight: bodyweight ? userWeight : weight,
       bodyweight,
     };
-    const newVolume = newLog.sets * newLog.effortPerSet;
-    const bestVolume = exercise.highestLog
-      ? exercise.highestLog.sets * exercise.highestLog.effortPerSet
-      : -1;
+    const newVolume = volumeOf(newLog);
+    const bestVolume = exercise.highestLog ? volumeOf(exercise.highestLog) : -1;
     onClose();
     db.exercises.update(exercise.id, {
       latestLog: newLog,
@@ -102,7 +107,11 @@ export default function LogModal({ exercise, isOpen, onClose, prefill }: LogModa
                 options={SET_TYPES}
                 selected={setType}
                 onChange={setSetType}
+                disabled={isSetTypeLocked}
               />
+              {isSetTypeLocked && (
+                <p className="text-xs text-zinc-400 -mt-2">Reset logs to change type</p>
+              )}
 
               <div className="flex gap-3">
                 <Input
