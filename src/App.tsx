@@ -9,10 +9,13 @@ import Settings from "./pages/Settings";
 import BottomNav from "./components/BottomNav";
 // import DebugFloatButton from "./components/DebugFloatButton";
 import FloatTimerButton from "./components/FloatTimerButton";
+import MobileGate from "./components/MobileGate";
 
 export default function App() {
   return (
-    <div className="pb-20">
+    <>
+    <MobileGate />
+    <div className="pb-20 md:hidden">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/filter" element={<Filter />} />
@@ -26,5 +29,6 @@ export default function App() {
       <FloatTimerButton />
       {/* <DebugFloatButton /> */}
     </div>
+    </>
   );
 }
