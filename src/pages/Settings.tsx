@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { db, exportData, importData, isValidBackup, type BackupShape } from "../db/db";
+import { db, exportData, importData, eraseData, isValidBackup, type BackupShape } from "../db/db";
 import { useSettingsStore, STAT_KEYS, STAT_LABELS } from "../store/settingsStore";
 import { useFilterStore } from "../store/filterStore";
 import Button from "../components/Button";
@@ -13,6 +13,8 @@ export default function Settings() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [pendingData, setPendingData] = useState<BackupShape | null>(null);
   const [importing, setImporting] = useState(false);
+  const [erasing, setErasing] = useState(false);
+  const [confirmErase, setConfirmErase] = useState(false);
   const { visibleStats, setStatVisible } = useSettingsStore();
   const { filterMode, setFilterMode } = useFilterStore();
 
@@ -81,6 +83,21 @@ export default function Settings() {
     } finally {
       setImporting(false);
       setPendingData(null);
+    }
+  }
+
+  async function handleErase() {
+    setErasing(true);
+    try {
+      await eraseData();
+      setExerciseCount(0);
+      setPlanCount(0);
+      toast.success("All data erased");
+    } catch {
+      toast.error("Erase failed");
+    } finally {
+      setErasing(false);
+      setConfirmErase(false);
     }
   }
 
@@ -173,6 +190,18 @@ export default function Settings() {
             </div>
             <Button variant="secondary" size="sm" onClick={() => fileRef.current?.click()}>
               Import
+            </Button>
+          </div>
+
+          <div className="h-px bg-zinc-200" />
+
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-zinc-800">Erase</p>
+              <p className="text-xs text-zinc-400">Delete everything permanently</p>
+            </div>
+            <Button variant="danger" size="sm" onClick={() => setConfirmErase(true)}>
+              Erase
             </Button>
           </div>
         </div>
@@ -286,6 +315,54 @@ export default function Settings() {
                     onClick={confirmImport}
                   >
                     Restore
+                  </Button>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>,
+        document.body,
+      )}
+
+      {createPortal(
+        <AnimatePresence>
+          {confirmErase && (
+            <>
+              <motion.div
+                className="fixed inset-0 z-50 bg-black/40"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => !erasing && setConfirmErase(false)}
+              />
+              <motion.div
+                className="fixed left-4 right-4 top-1/2 -translate-y-1/2 z-50 bg-white rounded-3xl px-6 py-8 shadow-2xl"
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.85 }}
+                transition={{ type: "spring", stiffness: 400, damping: 35 }}
+                style={{ willChange: "transform" }}
+              >
+                <h2 className="text-lg font-bold text-zinc-900 mb-1">Erase all data?</h2>
+                <p className="text-sm text-zinc-400 mb-6">
+                  This will permanently delete all exercises, plans, logs, and profile data. Cannot be undone.
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    className="flex-1"
+                    disabled={erasing}
+                    onClick={() => setConfirmErase(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="danger"
+                    className="flex-1"
+                    loading={erasing}
+                    onClick={handleErase}
+                  >
+                    Erase
                   </Button>
                 </div>
               </motion.div>

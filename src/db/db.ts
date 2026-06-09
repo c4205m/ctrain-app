@@ -154,6 +154,12 @@ export async function exportData(): Promise<void> {
   URL.revokeObjectURL(url);
 }
 
+export async function eraseData(): Promise<void> {
+  await db.transaction("rw", [db.exercises, db.plans, db.user, db.equipment, db.movementTypes], async () => {
+    await Promise.all(DB_KEYS.map((k) => db[k].clear()));
+  });
+}
+
 export async function importData(data: BackupShape): Promise<void> {
   await db.transaction("rw", [db.exercises, db.plans, db.user, db.equipment, db.movementTypes], async () => {
     await Promise.all(DB_KEYS.map((k) => db[k].clear()));
