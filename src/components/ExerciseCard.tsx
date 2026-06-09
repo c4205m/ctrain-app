@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { ChevronDown, Video, Dumbbell, Pencil } from "lucide-react";
 import Button from "./Button";
 import type { Exercise } from "../db/db";
 import Chip from "./Chip";
+import MediaModal, { isImageUrl, isEmbedSnippet } from "./MediaModal";
 import { formatDateDM } from "../utils/timeUtil";
 import { MUSCLE_COLOR, DIFFICULTY_BADGE, slugToTitle } from "../utils/displayUtil";
 
@@ -32,8 +34,15 @@ export default function ExerciseCard({
 }: ExerciseCardProps) {
   const badge = DIFFICULTY_BADGE[exercise.difficulty] ?? DIFFICULTY_BADGE.Beginner;
   const hasLogs = !!exercise.highestLog;
+  const [videoOpen, setVideoOpen] = useState(false);
+  const mediaLabel = exercise.url
+    ? isEmbedSnippet(exercise.url) ? "Embed"
+    : isImageUrl(exercise.url) ? "Image"
+    : "Link"
+    : null;
 
   return (
+    <>
     <div className={`bg-white rounded-2xl border border-zinc-100 overflow-hidden shrink-0 w-full h-full ${snap}`}>
       <button
         type="button"
@@ -133,10 +142,14 @@ export default function ExerciseCard({
               <Button
                 variant="ghost"
                 aria-label="Video"
-                onClick={() => window.open(exercise.url!, "_blank")}
+                onClick={() => {
+                  const u = exercise.url!;
+                  if (isEmbedSnippet(u) || isImageUrl(u)) setVideoOpen(true);
+                  else window.open(u, "_blank");
+                }}
                 className="flex-1 text-xs py-2"
               >
-                <Video size={14} /> Video
+                <Video size={14} /> {mediaLabel}
               </Button>
             )}
             <Button
@@ -161,5 +174,10 @@ export default function ExerciseCard({
         </div>
       )}
     </div>
+
+    {videoOpen && exercise.url && (
+      <MediaModal url={exercise.url} onClose={() => setVideoOpen(false)} />
+    )}
+  </>
   );
 }

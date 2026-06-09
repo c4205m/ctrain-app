@@ -192,13 +192,13 @@ export default function ExerciseFormModal({ target, isOpen, onClose }: ExerciseF
               {/* URL */}
               <div>
                 <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wide mb-1.5">
-                  Video URL (optional)
+                  Media (optional)
                 </div>
                 <Input
                   value={form.url}
                   onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))}
-                  placeholder="https://…"
-                  type="url"
+                  placeholder="https://… or <iframe …/>"
+                  type="text"
                 />
               </div>
 
