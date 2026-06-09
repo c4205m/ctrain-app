@@ -154,15 +154,17 @@ export async function exportData(): Promise<void> {
   URL.revokeObjectURL(url);
 }
 
+async function clearAllTables(): Promise<void> {
+  await Promise.all(DB_KEYS.map((k) => db[k].clear()));
+}
+
 export async function eraseData(): Promise<void> {
-  await db.transaction("rw", [db.exercises, db.plans, db.user, db.equipment, db.movementTypes], async () => {
-    await Promise.all(DB_KEYS.map((k) => db[k].clear()));
-  });
+  await db.transaction("rw", [db.exercises, db.plans, db.user, db.equipment, db.movementTypes], clearAllTables);
 }
 
 export async function importData(data: BackupShape): Promise<void> {
   await db.transaction("rw", [db.exercises, db.plans, db.user, db.equipment, db.movementTypes], async () => {
-    await Promise.all(DB_KEYS.map((k) => db[k].clear()));
+    await clearAllTables();
     await db.exercises.bulkAdd(data.exercises as never);
     await db.plans.bulkAdd(data.plans as never);
     await db.user.bulkAdd(data.user as never);

@@ -90,8 +90,9 @@ export default function Settings() {
     setErasing(true);
     try {
       await eraseData();
-      setExerciseCount(0);
-      setPlanCount(0);
+      const [ec, pc] = await Promise.all([db.exercises.count(), db.plans.count()]);
+      setExerciseCount(ec);
+      setPlanCount(pc);
       toast.success("All data erased");
     } catch {
       toast.error("Erase failed");
@@ -336,7 +337,7 @@ export default function Settings() {
                 onClick={() => !erasing && setConfirmErase(false)}
               />
               <motion.div
-                className="fixed left-4 right-4 top-1/2 -translate-y-1/2 z-50 bg-white rounded-3xl px-6 py-8 shadow-2xl"
+                className="fixed left-4 right-4 top-1/2 -translate-y-1/2 z-51 bg-white rounded-3xl px-6 py-8 shadow-2xl"
                 initial={{ opacity: 0, scale: 0.85 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.85 }}

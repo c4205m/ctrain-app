@@ -1,5 +1,5 @@
 import { createPortal } from "react-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { X } from "lucide-react";
 
 interface MediaModalProps {
@@ -27,7 +27,7 @@ export default function MediaModal({ url, onClose }: MediaModalProps) {
   const embedSrc = isEmbed ? extractEmbedSrc(url) : null;
 
   return createPortal(
-    <AnimatePresence>
+    <>
       <motion.div
         key="overlay"
         className="fixed inset-0 z-50 bg-black/60"
@@ -59,21 +59,19 @@ export default function MediaModal({ url, onClose }: MediaModalProps) {
         </div>
 
         {isEmbed && embedSrc ? (
-          <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
-            <iframe
-              src={embedSrc}
-              className="absolute inset-0 w-full h-full"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-              allowFullScreen
-            />
-          </div>
+          <iframe
+            src={embedSrc}
+            className="w-full aspect-video"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+            allowFullScreen
+          />
         ) : isEmbed ? (
           <div className="px-4 pb-5 text-xs text-zinc-400">Could not parse embed src.</div>
         ) : isImage ? (
           <img src={url} alt="" className="w-full max-h-[70vh] object-contain" />
         ) : null}
       </motion.div>
-    </AnimatePresence>,
+    </>,
     document.body,
   );
 }
