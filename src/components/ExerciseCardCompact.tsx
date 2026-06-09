@@ -1,5 +1,4 @@
 import { useState, type CSSProperties } from "react";
-import { AnimatePresence } from "framer-motion";
 import { PlayCircle, ExternalLink } from "lucide-react";
 import type { Exercise } from "../db/db";
 import Chip from "./Chip";
@@ -81,11 +80,9 @@ export default function ExerciseCardCompact({
         )}
       </div>
 
-      <AnimatePresence>
-        {videoOpen && exercise.url && (
-          <MediaModal url={exercise.url} onClose={() => setVideoOpen(false)} />
-        )}
-      </AnimatePresence>
+      {exercise.url && (
+        <MediaModal open={videoOpen} url={exercise.url} onClose={() => setVideoOpen(false)} />
+      )}
     </>
   );
 }

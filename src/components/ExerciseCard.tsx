@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { AnimatePresence } from "framer-motion";
 import { ChevronDown, Video, Dumbbell, Pencil } from "lucide-react";
 import Button from "./Button";
 import type { Exercise } from "../db/db";
@@ -176,11 +175,9 @@ export default function ExerciseCard({
       )}
     </div>
 
-    <AnimatePresence>
-      {videoOpen && exercise.url && (
-        <MediaModal url={exercise.url} onClose={() => setVideoOpen(false)} />
-      )}
-    </AnimatePresence>
+    {exercise.url && (
+      <MediaModal open={videoOpen} url={exercise.url} onClose={() => setVideoOpen(false)} />
+    )}
   </>
   );
 }
