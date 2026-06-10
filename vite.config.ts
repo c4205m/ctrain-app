@@ -14,7 +14,7 @@ export default defineConfig({
         name: 'CTrain',
         short_name: 'CTrain',
         description: 'Your personal training companion',
-        theme_color: '#f97316',
+        theme_color: '#FAFAFA',
         background_color: '#ffffff',
         display: 'standalone',
         start_url: '/ctrain-app/',

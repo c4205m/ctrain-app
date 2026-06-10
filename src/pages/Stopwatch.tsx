@@ -19,6 +19,9 @@ function formatLapTime(ms: number): string {
   return `${mins > 0 ? `${mins}:` : ""}${String(secs).padStart(mins > 0 ? 2 : 1, "0")}.${String(centis).padStart(2, "0")}`;
 }
 
+// Top padding while no laps recorded must clear the close button (top-4 + h-9 + gap)
+const CLOSE_BTN_CLEARANCE = 64;
+
 interface StopwatchProps {
   onClose?: () => void;
 }
@@ -79,7 +82,7 @@ export default function Stopwatch({ onClose }: StopwatchProps) {
   useLayoutEffect(() => {
     if (!topContentRef.current) return;
     const h = topContentRef.current.scrollHeight + 16; // pb-4
-    setCenterPad(Math.max(16, Math.round((window.innerHeight - h) / 2)));
+    setCenterPad(Math.max(CLOSE_BTN_CLEARANCE, Math.round((window.innerHeight - h) / 2)));
   }, [isPlanMode, isComplete]);
 
   function handleReset() {
@@ -123,7 +126,7 @@ export default function Stopwatch({ onClose }: StopwatchProps) {
     <div className="fixed inset-0 flex flex-col overflow-hidden select-none" onContextMenu={(e) => e.preventDefault()}>
       <motion.div
         className="px-4 pb-4 shrink-0"
-        animate={{ paddingTop: laps.length === 0 ? centerPad : 16 }}
+        animate={{ paddingTop: laps.length === 0 ? centerPad : CLOSE_BTN_CLEARANCE }}
         transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
       >
         <div ref={topContentRef}>
