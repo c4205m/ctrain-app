@@ -195,7 +195,7 @@ export default function Settings() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-zinc-800">Erase</p>
-              <p className="text-xs text-zinc-400">Delete everything permanently</p>
+              <p className="text-xs text-zinc-400">Delete exercise data permanently</p>
             </div>
             <Button
               variant="danger"
@@ -203,7 +203,7 @@ export default function Settings() {
               onClick={() =>
                 setPendingAction({
                   title: "Erase all data?",
-                  description: "This will permanently delete all exercises, plans, logs, and profile data. Cannot be undone.",
+                  description: "This will permanently delete all exercises, plans, logs, and equipment. Profile data is kept. Cannot be undone.",
                   confirmLabel: "Erase",
                   run: async () => {
                     await eraseData();

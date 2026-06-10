@@ -171,8 +171,12 @@ async function clearAllTables(): Promise<void> {
   await Promise.all(DB_KEYS.map((k) => db[k].clear()));
 }
 
+const ERASE_KEYS = DB_KEYS.filter((k) => k !== "user");
+
 export async function eraseData(): Promise<void> {
-  await db.transaction("rw", [db.exercises, db.plans, db.user, db.equipment, db.movementTypes, db.weightLogs], clearAllTables);
+  await db.transaction("rw", [db.exercises, db.plans, db.equipment, db.movementTypes, db.weightLogs], async () => {
+    await Promise.all(ERASE_KEYS.map((k) => db[k].clear()));
+  });
 }
 
 export async function resetWeightData(): Promise<void> {
