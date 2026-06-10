@@ -112,7 +112,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="p-4">
+    <div className="page-scroll p-4 pb-24">
       <div className="mb-6">
         <h1 className="font-heading font-bold text-[32px] leading-none text-zinc-900 mb-1">Settings</h1>
       </div>
@@ -259,7 +259,7 @@ export default function Settings() {
           <div className="h-px bg-zinc-200" />
 
           <a
-            href="https://github.com/placeholder"
+            href="https://github.com/c4205m/ctrain-app"
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm font-medium text-zinc-800"
