@@ -274,6 +274,58 @@ export async function resetLogs(exerciseId: string): Promise<void> {
   await db.exercises.update(exerciseId, { latestLog: undefined, highestLog: undefined })
 }
 
+// Equipment
+export async function addEquipment(name: string): Promise<void> {
+  await db.equipment.add({ id: crypto.randomUUID(), name })
+}
+
+export async function countExercisesUsingTool(name: string): Promise<number> {
+  return db.exercises.filter((ex) => ex.tools.includes(name)).count()
+}
+
+export async function deleteEquipment(id: string, name: string): Promise<void> {
+  await db.transaction("rw", [db.equipment, db.exercises], async () => {
+    await db.equipment.delete(id)
+    const exercises = await db.exercises.filter((ex) => ex.tools.includes(name)).toArray()
+    await Promise.all(
+      exercises.map((ex) => db.exercises.update(ex.id!, { tools: ex.tools.filter((t) => t !== name) }))
+    )
+  })
+}
+
+export async function resetEquipmentToDefaults(): Promise<void> {
+  await db.transaction("rw", db.equipment, async () => {
+    await db.equipment.clear()
+    await seedEquipment(db)
+  })
+}
+
+// Movement Types
+export async function addMovementType(name: string): Promise<void> {
+  await db.movementTypes.add({ id: crypto.randomUUID(), name })
+}
+
+export async function countExercisesUsingMovementType(name: string): Promise<number> {
+  return db.exercises.filter((ex) => ex.movementType.includes(name)).count()
+}
+
+export async function deleteMovementType(id: string, name: string): Promise<void> {
+  await db.transaction("rw", [db.movementTypes, db.exercises], async () => {
+    await db.movementTypes.delete(id)
+    const exercises = await db.exercises.filter((ex) => ex.movementType.includes(name)).toArray()
+    await Promise.all(
+      exercises.map((ex) => db.exercises.update(ex.id!, { movementType: ex.movementType.filter((t) => t !== name) }))
+    )
+  })
+}
+
+export async function resetMovementTypesToDefaults(): Promise<void> {
+  await db.transaction("rw", db.movementTypes, async () => {
+    await db.movementTypes.clear()
+    await seedMovementTypes(db)
+  })
+}
+
 export async function deleteExercise(id: string): Promise<void> {
   await db.exercises.delete(id)
   const plans = await db.plans.toArray()
