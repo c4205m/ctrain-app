@@ -19,6 +19,7 @@
     "react-body-highlighter": "^2.0.5",
     "react-dom": "^19.2.5",
     "react-router-dom": "^7.14.2",
+    "recharts": "^2.15.4",
     "sonner": "^2.0.7",
     "tailwindcss": "^4.2.4",
     "zustand": "^5.0.12"

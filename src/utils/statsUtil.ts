@@ -77,7 +77,7 @@ export function computeMostTrainedMuscle(exercises: Exercise[]): string | null {
 export function computeMostNeglectedMuscle(exercises: Exercise[]): string | null {
   const scores = computeScores(exercises);
   const entries = (Object.entries(scores) as [string, number][]).filter(
-    ([, v]) => v > 0
+    ([, v]) => v >= 5
   );
   if (entries.length === 0) return null;
   const worst = entries.reduce((a, b) => (a[1] > b[1] ? a : b));

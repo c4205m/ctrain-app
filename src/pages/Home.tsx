@@ -4,6 +4,8 @@ import StatTile from "../components/StatTile";
 import RecentLogs from "../components/RecentLogs";
 import MuscleHeatmap from "../components/MuscleHeatmap";
 import LogModal from "../components/LogModal";
+import WeightLogModal from "../components/WeightLogModal";
+import WeightChart from "../components/WeightChart";
 import { formatDate, getGreeting } from "../utils/timeUtil";
 import { computeScores } from "../utils/displayUtil";
 import {
@@ -22,8 +24,11 @@ import { db, type Exercise } from "../db/db";
 
 export default function Home() {
   const [logTarget, setLogTarget] = useState<Exercise | null>(null);
+  const [weightModalOpen, setWeightModalOpen] = useState(false);
   const exercises = useLiveQuery(() => db.exercises.toArray(), [], []);
   const user = useLiveQuery(() => db.user.toArray().then((u) => u[0] ?? null), []);
+  const weightHistory = useLiveQuery(() => db.weightLogs.orderBy("date").toArray(), [], []);
+  const latestWeight = weightHistory.at(-1)?.weight ?? user?.weight;
   const scores = useMemo(() => computeScores(exercises), [exercises]);
   const vis = useSettingsStore((s) => s.visibleStats);
 
@@ -101,6 +106,11 @@ export default function Home() {
             </div>
           </StatTile>
         )}
+        {vis.weightTracking && (
+          <StatTile label="Weight Tracking" hint="Tap to log weight" className="col-span-2" onClick={() => setWeightModalOpen(true)}>
+            <WeightChart data={weightHistory.slice(-8)} />
+          </StatTile>
+        )}
         <StatTile label="Recent Muscles" className="col-span-2">
           <MuscleHeatmap scores={scores} modelWidth={70} dual={true} showLegend={true} showCoverage={true} />
         </StatTile>
@@ -127,6 +137,11 @@ export default function Home() {
         exercise={logTarget}
         isOpen={logTarget !== null}
         onClose={() => setLogTarget(null)}
+      />
+      <WeightLogModal
+        isOpen={weightModalOpen}
+        onClose={() => setWeightModalOpen(false)}
+        currentWeight={latestWeight}
       />
     </div>
   );

@@ -67,6 +67,12 @@ export interface User {
   height?: number
 }
 
+export interface WeightEntry {
+  id?: string
+  date: string
+  weight: number
+}
+
 export interface Equipment {
   id?: string
   name: string
@@ -83,6 +89,7 @@ export const db = new Dexie("cTrainDatabase") as Dexie & {
   user: EntityTable<User, "id">
   equipment: EntityTable<Equipment, "id">
   movementTypes: EntityTable<MovementTypeEntry, "id">
+  weightLogs: EntityTable<WeightEntry, "id">
 }
 
 db.version(1).stores({
@@ -91,6 +98,10 @@ db.version(1).stores({
     user: "++id",
     equipment: "&id, name",
     movementTypes: "&id, name",
+});
+
+db.version(2).stores({
+    weightLogs: "&id, date",
 });
 
 db.on('populate', async () => {
@@ -118,21 +129,22 @@ export async function seedPlans(db: { plans: { bulkAdd: (items: Plan[]) => Promi
 
 // Import / Export
 
-const DB_KEYS = ["exercises", "plans", "user", "equipment", "movementTypes"] as const;
+const DB_KEYS = ["exercises", "plans", "user", "equipment", "movementTypes", "weightLogs"] as const;
 export type BackupShape = Record<(typeof DB_KEYS)[number], unknown[]>;
 
 export function isValidBackup(data: unknown): data is BackupShape {
   if (!data || typeof data !== "object") return false;
-  return DB_KEYS.every((k) => Array.isArray((data as Record<string, unknown>)[k]));
+  return DB_KEYS.filter((k) => k !== "weightLogs").every((k) => Array.isArray((data as Record<string, unknown>)[k]));
 }
 
 export async function exportData(): Promise<void> {
-  const [exercises, plans, user, equipment, movementTypes] = await Promise.all([
+  const [exercises, plans, user, equipment, movementTypes, weightLogs] = await Promise.all([
     db.exercises.toArray(),
     db.plans.toArray(),
     db.user.toArray(),
     db.equipment.toArray(),
     db.movementTypes.toArray(),
+    db.weightLogs.toArray(),
   ]);
 
   const payload = {
@@ -143,6 +155,7 @@ export async function exportData(): Promise<void> {
     user,
     equipment,
     movementTypes,
+    weightLogs,
   };
 
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
@@ -159,18 +172,67 @@ async function clearAllTables(): Promise<void> {
 }
 
 export async function eraseData(): Promise<void> {
-  await db.transaction("rw", [db.exercises, db.plans, db.user, db.equipment, db.movementTypes], clearAllTables);
+  await db.transaction("rw", [db.exercises, db.plans, db.user, db.equipment, db.movementTypes, db.weightLogs], clearAllTables);
+}
+
+export async function resetWeightData(): Promise<void> {
+  await db.transaction("rw", [db.user, db.weightLogs], async () => {
+    await db.weightLogs.clear();
+    const users = await db.user.toArray();
+    if (users[0]?.id != null) await db.user.update(users[0].id, { weight: 0 });
+  });
+}
+
+export async function resetAllLogs(): Promise<void> {
+  await db.transaction("rw", [db.exercises, db.plans], async () => {
+    const exercises = await db.exercises.toArray();
+    await Promise.all(
+      exercises.map((ex) => db.exercises.update(ex.id!, { latestLog: undefined, highestLog: undefined }))
+    );
+    const plans = await db.plans.toArray();
+    await Promise.all(
+      plans.map((p) => db.plans.put({ ...p, duration: calcPlanDuration(p.exercises) }))
+    );
+  });
 }
 
 export async function importData(data: BackupShape): Promise<void> {
-  await db.transaction("rw", [db.exercises, db.plans, db.user, db.equipment, db.movementTypes], async () => {
+  await db.transaction("rw", [db.exercises, db.plans, db.user, db.equipment, db.movementTypes, db.weightLogs], async () => {
     await clearAllTables();
     await db.exercises.bulkAdd(data.exercises as never);
     await db.plans.bulkAdd(data.plans as never);
     await db.user.bulkAdd(data.user as never);
     await db.equipment.bulkAdd(data.equipment as never);
     await db.movementTypes.bulkAdd(data.movementTypes as never);
+    if (data.weightLogs) await db.weightLogs.bulkAdd(data.weightLogs as never);
   });
+}
+
+export async function addWeightEntry(weight: number): Promise<void> {
+  await db.weightLogs.add({ id: crypto.randomUUID(), date: new Date().toISOString(), weight });
+  const users = await db.user.toArray();
+  if (users[0]?.id != null) {
+    await db.user.update(users[0].id, { weight });
+  } else {
+    await db.user.add({ weight });
+  }
+}
+
+async function syncUserWeightToLatest(): Promise<void> {
+  const latest = await db.weightLogs.orderBy("date").last();
+  if (!latest) return;
+  const users = await db.user.toArray();
+  if (users[0]?.id != null) await db.user.update(users[0].id, { weight: latest.weight });
+}
+
+export async function updateWeightEntry(id: string, weight: number): Promise<void> {
+  await db.weightLogs.update(id, { weight });
+  await syncUserWeightToLatest();
+}
+
+export async function deleteWeightEntry(id: string): Promise<void> {
+  await db.weightLogs.delete(id);
+  await syncUserWeightToLatest();
 }
 
 // Plans

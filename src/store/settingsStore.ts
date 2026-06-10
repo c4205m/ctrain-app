@@ -11,6 +11,7 @@ export const STAT_KEYS = [
   "mostTrainedMuscle",
   "mostNeglectedMuscle",
   "weight",
+  "weightTracking",
   "height",
   "bmi",
 ] as const;
@@ -27,6 +28,7 @@ export const STAT_LABELS: Record<StatKey, string> = {
   mostTrainedMuscle: "Most Trained Muscle",
   mostNeglectedMuscle: "Most Neglected Muscle",
   weight: "Weight",
+  weightTracking: "Weight Tracking",
   height: "Height",
   bmi: "BMI",
 };
@@ -34,6 +36,8 @@ export const STAT_LABELS: Record<StatKey, string> = {
 interface SettingsState {
   visibleStats: Record<StatKey, boolean>;
   setStatVisible: (key: StatKey, visible: boolean) => void;
+  onboardingComplete: boolean;
+  setOnboardingComplete: () => void;
 }
 
 const DEFAULT_VISIBLE = Object.fromEntries(
@@ -46,6 +50,8 @@ export const useSettingsStore = create<SettingsState>()(
       visibleStats: DEFAULT_VISIBLE,
       setStatVisible: (key, visible) =>
         set((s) => ({ visibleStats: { ...s.visibleStats, [key]: visible } })),
+      onboardingComplete: false,
+      setOnboardingComplete: () => set({ onboardingComplete: true }),
     }),
     { name: "ctrain-settings" }
   )

@@ -1,55 +1,41 @@
 import { useRef, useState, useEffect } from "react";
-import { createPortal } from "react-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { db, exportData, importData, eraseData, isValidBackup, type BackupShape } from "../db/db";
+import {
+  db,
+  exportData,
+  importData,
+  eraseData,
+  resetWeightData,
+  resetAllLogs,
+  isValidBackup,
+} from "../db/db";
 import { useSettingsStore, STAT_KEYS, STAT_LABELS } from "../store/settingsStore";
 import { useFilterStore } from "../store/filterStore";
 import Button from "../components/Button";
 import Toggle from "../components/Toggle";
-import Input from "../components/Input";
+import ConfirmModal from "../components/ConfirmModal";
+
+interface PendingAction {
+  title: string;
+  description: string;
+  confirmLabel: string;
+  run: () => Promise<void>;
+}
 
 export default function Settings() {
   const fileRef = useRef<HTMLInputElement>(null);
-  const [pendingData, setPendingData] = useState<BackupShape | null>(null);
-  const [importing, setImporting] = useState(false);
-  const [erasing, setErasing] = useState(false);
-  const [confirmErase, setConfirmErase] = useState(false);
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
   const { visibleStats, setStatVisible } = useSettingsStore();
   const { filterMode, setFilterMode } = useFilterStore();
 
-  const [userWeight, setUserWeight] = useState<number | "">("");
-  const [userHeight, setUserHeight] = useState<number | "">("");
   const [exerciseCount, setExerciseCount] = useState<number | null>(null);
   const [planCount, setPlanCount] = useState<number | null>(null);
 
   useEffect(() => {
-    db.user.toArray().then((users) => {
-      if (users[0]) {
-        setUserWeight(users[0].weight);
-        if (users[0].height) setUserHeight(users[0].height);
-      }
-    });
     db.exercises.count().then(setExerciseCount);
     db.plans.count().then(setPlanCount);
   }, []);
-
-  const bmiPreview = userWeight && userHeight
-    ? (Number(userWeight) / Math.pow(Number(userHeight) / 100, 2)).toFixed(1)
-    : null;
-
-  async function handleProfileSave() {
-    if (userWeight === "" || userWeight <= 0) return;
-    const data: { weight: number; height?: number } = { weight: userWeight };
-    if (userHeight !== "" && userHeight > 0) data.height = userHeight;
-    const users = await db.user.toArray();
-    if (users[0]?.id != null) {
-      await db.user.update(users[0].id, data);
-    } else {
-      await db.user.add(data);
-    }
-    toast.success("Profile saved");
-  }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -64,7 +50,16 @@ export default function Settings() {
           toast.error("Invalid backup file");
           return;
         }
-        setPendingData(parsed);
+        setPendingAction({
+          title: "Replace all data?",
+          description: "This will delete everything and restore from the backup file. This cannot be undone.",
+          confirmLabel: "Restore",
+          run: async () => {
+            await importData(parsed);
+            await refreshCounts();
+            toast.success("Data restored");
+          },
+        });
       } catch {
         toast.error("Could not read file");
       }
@@ -72,33 +67,22 @@ export default function Settings() {
     reader.readAsText(file);
   }
 
-  async function confirmImport() {
-    if (!pendingData) return;
-    setImporting(true);
-    try {
-      await importData(pendingData);
-      toast.success("Data restored");
-    } catch {
-      toast.error("Import failed");
-    } finally {
-      setImporting(false);
-      setPendingData(null);
-    }
+  async function refreshCounts() {
+    const [ec, pc] = await Promise.all([db.exercises.count(), db.plans.count()]);
+    setExerciseCount(ec);
+    setPlanCount(pc);
   }
 
-  async function handleErase() {
-    setErasing(true);
+  async function handleConfirmAction() {
+    if (!pendingAction) return;
+    setActionLoading(true);
     try {
-      await eraseData();
-      const [ec, pc] = await Promise.all([db.exercises.count(), db.plans.count()]);
-      setExerciseCount(ec);
-      setPlanCount(pc);
-      toast.success("All data erased");
+      await pendingAction.run();
     } catch {
-      toast.error("Erase failed");
+      toast.error("Action failed");
     } finally {
-      setErasing(false);
-      setConfirmErase(false);
+      setActionLoading(false);
+      setPendingAction(null);
     }
   }
 
@@ -115,46 +99,6 @@ export default function Settings() {
     <div className="page-scroll p-4 pb-24">
       <div className="mb-6">
         <h1 className="font-heading font-bold text-[32px] leading-none text-zinc-900 mb-1">Settings</h1>
-      </div>
-
-      <div className="bg-zinc-100 rounded-2xl p-4 shadow-sm mb-3">
-        <h2 className="font-heading font-semibold text-base text-zinc-900 mb-4">Profile</h2>
-        <div className="flex gap-3 mb-3">
-          <Input
-            label="Weight (kg)"
-            type="number"
-            inputMode="decimal"
-            value={userWeight}
-            min={1}
-            max={300}
-            step={0.1}
-            onChange={(e) => setUserWeight(e.target.value === "" ? "" : parseFloat(e.target.value))}
-            wrapperClassName="flex-1"
-          />
-          <Input
-            label="Height (cm)"
-            type="number"
-            inputMode="decimal"
-            value={userHeight}
-            min={50}
-            max={250}
-            step={0.1}
-            onChange={(e) => setUserHeight(e.target.value === "" ? "" : parseFloat(e.target.value))}
-            wrapperClassName="flex-1"
-          />
-        </div>
-        <div className="flex items-center justify-between">
-          {bmiPreview ? (
-            <span className="text-sm text-zinc-500">
-              BMI <span className="font-semibold text-zinc-900">{bmiPreview}</span>
-            </span>
-          ) : (
-            <span />
-          )}
-          <Button variant="secondary" size="sm" onClick={handleProfileSave}>
-            Save
-          </Button>
-        </div>
       </div>
 
       <div className="bg-zinc-100 rounded-2xl p-4 shadow-sm">
@@ -198,10 +142,77 @@ export default function Settings() {
 
           <div className="flex items-center justify-between">
             <div>
+              <p className="text-sm font-medium text-zinc-800">Reset Weight</p>
+              <p className="text-xs text-zinc-400">Clear weight history and current weight</p>
+            </div>
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() =>
+                setPendingAction({
+                  title: "Reset weight data?",
+                  description: "Clears your weight history and current weight. This cannot be undone.",
+                  confirmLabel: "Reset",
+                  run: async () => {
+                    await resetWeightData();
+                    toast.success("Weight data reset");
+                  },
+                })
+              }
+            >
+              Reset
+            </Button>
+          </div>
+
+          <div className="h-px bg-zinc-200" />
+
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-zinc-800">Reset Logs</p>
+              <p className="text-xs text-zinc-400">Clear all exercise logs and PRs</p>
+            </div>
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() =>
+                setPendingAction({
+                  title: "Reset all logs?",
+                  description: "Clears the latest log and PR for every exercise and recalculates plan durations. This cannot be undone.",
+                  confirmLabel: "Reset",
+                  run: async () => {
+                    await resetAllLogs();
+                    toast.success("Logs reset");
+                  },
+                })
+              }
+            >
+              Reset
+            </Button>
+          </div>
+
+          <div className="h-px bg-zinc-200" />
+
+          <div className="flex items-center justify-between">
+            <div>
               <p className="text-sm font-medium text-zinc-800">Erase</p>
               <p className="text-xs text-zinc-400">Delete everything permanently</p>
             </div>
-            <Button variant="danger" size="sm" onClick={() => setConfirmErase(true)}>
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() =>
+                setPendingAction({
+                  title: "Erase all data?",
+                  description: "This will permanently delete all exercises, plans, logs, and profile data. Cannot be undone.",
+                  confirmLabel: "Erase",
+                  run: async () => {
+                    await eraseData();
+                    await refreshCounts();
+                    toast.success("All data erased");
+                  },
+                })
+              }
+            >
               Erase
             </Button>
           </div>
@@ -277,101 +288,15 @@ export default function Settings() {
         onChange={handleFileChange}
       />
 
-      {createPortal(
-        <AnimatePresence>
-          {pendingData && (
-            <>
-              <motion.div
-                className="fixed inset-0 z-50 bg-black/40"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => !importing && setPendingData(null)}
-              />
-              <motion.div
-                className="fixed left-4 right-4 top-1/2 -translate-y-1/2 z-50 bg-white rounded-3xl px-6 py-8 shadow-2xl"
-                initial={{ opacity: 0, scale: 0.85 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.85 }}
-                transition={{ type: "spring", stiffness: 400, damping: 35 }}
-                style={{ willChange: "transform" }}
-              >
-                <h2 className="text-lg font-bold text-zinc-900 mb-1">Replace all data?</h2>
-                <p className="text-sm text-zinc-400 mb-6">
-                  This will delete everything and restore from the backup file. This cannot be undone.
-                </p>
-                <div className="flex gap-2">
-                  <Button
-                    variant="ghost"
-                    className="flex-1"
-                    disabled={importing}
-                    onClick={() => setPendingData(null)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    variant="danger"
-                    className="flex-1"
-                    loading={importing}
-                    onClick={confirmImport}
-                  >
-                    Restore
-                  </Button>
-                </div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>,
-        document.body,
-      )}
-
-      {createPortal(
-        <AnimatePresence>
-          {confirmErase && (
-            <>
-              <motion.div
-                className="fixed inset-0 z-50 bg-black/40"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => !erasing && setConfirmErase(false)}
-              />
-              <motion.div
-                className="fixed left-4 right-4 top-1/2 -translate-y-1/2 z-51 bg-white rounded-3xl px-6 py-8 shadow-2xl"
-                initial={{ opacity: 0, scale: 0.85 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.85 }}
-                transition={{ type: "spring", stiffness: 400, damping: 35 }}
-                style={{ willChange: "transform" }}
-              >
-                <h2 className="text-lg font-bold text-zinc-900 mb-1">Erase all data?</h2>
-                <p className="text-sm text-zinc-400 mb-6">
-                  This will permanently delete all exercises, plans, logs, and profile data. Cannot be undone.
-                </p>
-                <div className="flex gap-2">
-                  <Button
-                    variant="ghost"
-                    className="flex-1"
-                    disabled={erasing}
-                    onClick={() => setConfirmErase(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    variant="danger"
-                    className="flex-1"
-                    loading={erasing}
-                    onClick={handleErase}
-                  >
-                    Erase
-                  </Button>
-                </div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>,
-        document.body,
-      )}
+      <ConfirmModal
+        isOpen={pendingAction !== null}
+        title={pendingAction?.title ?? ""}
+        description={pendingAction?.description ?? ""}
+        confirmLabel={pendingAction?.confirmLabel ?? "Confirm"}
+        loading={actionLoading}
+        onConfirm={handleConfirmAction}
+        onCancel={() => setPendingAction(null)}
+      />
     </div>
   );
 }

@@ -10,11 +10,13 @@ import BottomNav from "./components/BottomNav";
 // import DebugFloatButton from "./components/DebugFloatButton";
 import FloatTimerButton from "./components/FloatTimerButton";
 import MobileGate from "./components/MobileGate";
+import ProfileSetupModal from "./components/ProfileSetupModal";
 
 export default function App() {
   return (
     <>
     <MobileGate />
+    <ProfileSetupModal />
     <div className="h-full md:hidden">
       <Routes>
         <Route path="/" element={<Home />} />
