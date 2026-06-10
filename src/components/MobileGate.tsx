@@ -3,7 +3,7 @@ import { Smartphone } from "lucide-react";
 
 export default function MobileGate() {
   return (
-    <div className="hidden md:flex fixed inset-0 z-[9999] bg-white flex-col items-center justify-center gap-6 select-none">
+    <div className="hidden md:flex fixed inset-0 z-9999 bg-white flex-col items-center justify-center gap-6 select-none">
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
