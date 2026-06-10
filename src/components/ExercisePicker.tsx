@@ -4,6 +4,9 @@ import { Search } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Input from './Input'
 import Button from './Button'
+import Toggle from './Toggle'
+import { useFilterStore } from '../store/filterStore'
+import { filterExercises } from '../utils/filterUtil'
 import type { Exercise } from '../db/db'
 
 interface ExercisePickerProps {
@@ -17,8 +20,11 @@ interface ExercisePickerProps {
 export default function ExercisePicker({ isOpen, exercises, alreadySelected, onConfirm, onClose }: ExercisePickerProps) {
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<string[]>([])
+  const [showAll, setShowAll] = useState(false)
+  const filterStore = useFilterStore()
 
-  const filtered = exercises.filter(ex =>
+  const scoped = showAll ? exercises : filterExercises(exercises, filterStore)
+  const filtered = scoped.filter(ex =>
     ex.name.toLowerCase().includes(search.toLowerCase())
   )
 
@@ -65,6 +71,12 @@ export default function ExercisePicker({ isOpen, exercises, alreadySelected, onC
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Search exercises…"
               />
+              {filterStore.activeCount() > 0 && (
+                <label className="flex items-center justify-between mt-3 cursor-pointer">
+                  <span className="text-sm font-medium text-zinc-800">Show all</span>
+                  <Toggle checked={showAll} onChange={setShowAll} />
+                </label>
+              )}
             </div>
 
             <div className="overflow-y-auto flex-1 px-6 space-y-1">
