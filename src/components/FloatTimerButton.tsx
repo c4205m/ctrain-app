@@ -19,7 +19,8 @@ export default function FloatTimerButton() {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const wasDragging = useRef(false);
-  const { running, getElapsed, requestOpen, clearRequestOpen } = useStopwatchStore();
+  const { running, currentLabel, getElapsed, requestOpen, clearRequestOpen } = useStopwatchStore();
+  const isRest = currentLabel === "Rest";
 
   useEffect(() => {
     if (requestOpen) { setIsOpen(true); clearRequestOpen(); }
@@ -67,7 +68,7 @@ export default function FloatTimerButton() {
       >
         <motion.button
           onClick={handleClick}
-          animate={{ backgroundColor: running ? "#f97316" : "#ffffff" }}
+          animate={{ backgroundColor: running ? (isRest ? "#3b82f6" : "#f97316") : "#ffffff" }}
           transition={{ duration: 0.2 }}
           className="absolute inset-0 w-11 h-11 rounded-full shadow-lg flex flex-col items-center justify-center cursor-pointer border border-zinc-100"
           style={{ willChange: "transform" }}
