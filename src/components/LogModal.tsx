@@ -11,7 +11,7 @@ interface LogModalProps {
   exercise: Exercise | null;
   isOpen: boolean;
   onClose: () => void;
-  prefill?: { sets: number; reps: number };
+  prefill?: { sets?: number; reps?: number; duration?: number };
 }
 
 const SET_TYPES: Log["setType"][] = ["rep", "distance", "duration"];
@@ -46,10 +46,15 @@ export default function LogModal({ exercise, isOpen, onClose, prefill }: LogModa
   useEffect(() => {
     if (!exercise) return;
     const log = exercise.latestLog;
+    const resolvedSetType = log?.setType ?? "rep";
     setSets(prefill?.sets ?? log?.sets ?? 3);
-    setEffort(prefill?.reps ?? log?.effortPerSet ?? 10);
-    setSetType(log?.setType ?? "rep");
-    setSetDuration(log?.setType !== "duration" && log?.duration ? log.duration : "");
+    setEffort(resolvedSetType === "duration" && prefill?.duration != null ? prefill.duration : prefill?.reps ?? log?.effortPerSet ?? 10);
+    setSetType(resolvedSetType);
+    setSetDuration(
+      resolvedSetType !== "duration" && prefill?.duration != null
+        ? prefill.duration
+        : log?.setType !== "duration" && log?.duration ? log.duration : ""
+    );
     setWeight(log?.weight ?? 0);
     setBodyweight(log?.bodyweight ?? false);
   }, [exercise, prefill]);

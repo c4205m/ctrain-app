@@ -1,7 +1,10 @@
 import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { ClipboardList } from "lucide-react";
 import { useStopwatchStore, type PlanSession } from "../store/stopwatchStore";
+import LogModal from "../components/LogModal";
+import type { Exercise } from "../db/db";
 
 function formatTime(ms: number): string {
   const totalSecs = Math.floor(ms / 1000);
@@ -33,7 +36,7 @@ export default function Stopwatch({ onClose }: StopwatchProps) {
   const {
     running, laps, currentLabel, isComplete, exIdx, currentSet,
     lapStartBase, session,
-    getElapsed, start, pause, reset, recordLap,
+    getElapsed, start, pause, reset, recordLap, addExerciseDoneMarker,
     setCurrentLabel, setIsComplete, setExIdx, setCurrentSet, setSession,
   } = useStopwatchStore();
 
@@ -73,8 +76,12 @@ export default function Stopwatch({ onClose }: StopwatchProps) {
     ? (isRest ? "text-blue-500" : "text-orange-500")
     : "text-zinc-900";
 
+  const [logTarget, setLogTarget] = useState<Exercise | null>(null);
+  const [logPrefill, setLogPrefill] = useState<{ sets?: number; reps?: number; duration?: number } | undefined>(undefined);
+
   const longPressRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const didLongPressRef = useRef(false);
+  const setDurationsRef = useRef<number[]>([]);
 
   const topContentRef = useRef<HTMLDivElement>(null);
   const [centerPad, setCenterPad] = useState(() => Math.round(window.innerHeight * 0.35));
@@ -88,6 +95,7 @@ export default function Stopwatch({ onClose }: StopwatchProps) {
   function handleReset() {
     reset();
     setDisplayElapsed(0);
+    setDurationsRef.current = [];
     if (isPlanMode) {
       if (onClose) onClose();
       else navigate("/dev/stopwatch", { replace: true, state: null });
@@ -101,11 +109,30 @@ export default function Stopwatch({ onClose }: StopwatchProps) {
     }
 
     let lapLabel = currentLabel;
+    let exerciseDoneMarker: { label: string; exerciseId?: string; sets?: number; reps?: number; duration?: number } | null = null;
 
     if (isPlanMode && currentLabel === "Work") {
       const isLastSet = currentSet >= totalSets;
       const isLastExercise = exIdx + 1 >= (session?.plan.exercises.length ?? 0);
-      lapLabel = `${planExercise?.name ?? "Exercise"} • Set ${currentSet}`;
+      const exerciseName = planExercise?.name ?? "Exercise";
+      lapLabel = `${exerciseName} • Set ${currentSet}`;
+
+      const thisSetMs = getElapsed() - lapStartBase;
+      setDurationsRef.current.push(thisSetMs);
+
+      if (isLastSet) {
+        const allSetMs = setDurationsRef.current;
+        const avgMs = allSetMs.reduce((a, b) => a + b, 0) / allSetMs.length;
+        setDurationsRef.current = [];
+
+        exerciseDoneMarker = {
+          label: exerciseName,
+          exerciseId: planEx?.exerciseId,
+          sets: planEx?.sets,
+          reps: planEx?.reps,
+          duration: Math.round((avgMs / 1000) * 100) / 100,
+        };
+      }
 
       if (isLastSet && isLastExercise) {
         pause();
@@ -119,6 +146,7 @@ export default function Stopwatch({ onClose }: StopwatchProps) {
     }
 
     recordLap(lapLabel);
+    if (exerciseDoneMarker) addExerciseDoneMarker(exerciseDoneMarker);
     setCurrentLabel(type);
   }
 
@@ -205,24 +233,64 @@ export default function Stopwatch({ onClose }: StopwatchProps) {
       {/* Lap list — scrollable */}
       <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-24">
         <AnimatePresence initial={false}>
-          {laps.map((lap, i) => (
-            <motion.div
-              key={laps.length - i}
-              initial={{ opacity: 0, y: -12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ type: "spring", stiffness: 400, damping: 30 }}
-              className="flex items-center justify-between py-3 border-b border-zinc-100"
-            >
-              <div className="flex items-center gap-3">
-                <span className={`w-2 h-2 rounded-full ${lap.label === "Rest" ? "bg-blue-500" : "bg-orange-500"}`} />
-                <span className="text-sm font-semibold text-zinc-900">{lap.label}</span>
-                <span className="text-xs text-zinc-400">Lap {laps.length - i}</span>
-              </div>
-              <span className="font-mono text-sm text-zinc-700 tabular-nums">{formatLapTime(lap.ms)}</span>
-            </motion.div>
-          ))}
+          {(() => {
+            let setNumber = laps.filter((l) => l.kind !== "exercise-done").length;
+            return laps.map((lap, i) => {
+              if (lap.kind === "exercise-done") {
+                return (
+                  <motion.div
+                    key={laps.length - i}
+                    initial={{ opacity: 0, y: -12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    className="flex items-center justify-between gap-3 my-2 px-3 py-2.5 rounded-xl bg-orange-50 border border-orange-100"
+                  >
+                    <span className="text-sm font-semibold text-zinc-900 truncate">{lap.label} finished</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const exercise = session?.exercises.find((e) => e.id === lap.exerciseId);
+                        if (!exercise) return;
+                        setLogTarget(exercise);
+                        setLogPrefill({ sets: lap.sets, reps: lap.reps, duration: lap.duration });
+                      }}
+                      className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-orange-500 shrink-0 shadow-sm cursor-pointer"
+                      aria-label="Log exercise"
+                    >
+                      <ClipboardList size={14} />
+                    </button>
+                  </motion.div>
+                );
+              }
+
+              const lapNumber = setNumber--;
+              return (
+                <motion.div
+                  key={laps.length - i}
+                  initial={{ opacity: 0, y: -12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  className="flex items-center justify-between py-3 border-b border-zinc-100"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className={`w-2 h-2 rounded-full shrink-0 ${lap.label === "Rest" ? "bg-blue-500" : "bg-orange-500"}`} />
+                    <span className="text-sm font-semibold text-zinc-900 truncate">{lap.label}</span>
+                    <span className="text-xs text-zinc-400 shrink-0">Lap {lapNumber}</span>
+                  </div>
+                  <span className="font-mono text-sm text-zinc-700 tabular-nums">{formatLapTime(lap.ms ?? 0)}</span>
+                </motion.div>
+              );
+            });
+          })()}
         </AnimatePresence>
       </div>
+
+      <LogModal
+        exercise={logTarget}
+        isOpen={logTarget !== null}
+        onClose={() => { setLogTarget(null); setLogPrefill(undefined); }}
+        prefill={logPrefill}
+      />
     </div>
   );
 }

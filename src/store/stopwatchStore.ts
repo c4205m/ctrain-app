@@ -3,7 +3,12 @@ import type { Plan, Exercise } from "../db/db";
 
 export interface Lap {
   label: string;
-  ms: number;
+  ms?: number;
+  exerciseId?: string;
+  sets?: number;
+  reps?: number;
+  duration?: number;
+  kind?: "exercise-done";
 }
 
 export interface PlanSession {
@@ -30,6 +35,7 @@ interface StopwatchState {
   pause: () => void;
   reset: () => void;
   recordLap: (label: string) => void;
+  addExerciseDoneMarker: (marker: { label: string; exerciseId?: string; sets?: number; reps?: number; duration?: number }) => void;
   setCurrentLabel: (label: string) => void;
   setIsComplete: (v: boolean) => void;
   setExIdx: (fn: (i: number) => number) => void;
@@ -92,6 +98,9 @@ export const useStopwatchStore = create<StopwatchState>((set, get) => ({
     const elapsed = s.getElapsed();
     set({ laps: [{ label, ms: elapsed - s.lapStartBase }, ...s.laps], lapStartBase: elapsed });
   },
+
+  addExerciseDoneMarker: (marker) =>
+    set((s) => ({ laps: [{ ...marker, kind: "exercise-done" }, ...s.laps] })),
 
   setCurrentLabel: (label) => set({ currentLabel: label }),
   setIsComplete: (v) => set({ isComplete: v }),
