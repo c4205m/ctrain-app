@@ -34,54 +34,56 @@ export default function List() {
   }
 
   return (
-    <div className="p-4">
-      <h1 className="font-heading font-bold text-2xl text-zinc-900 mb-4">List</h1>
+    <div className="page-scroll">
+      <div className="p-4 pb-24">
+        <h1 className="font-heading font-bold text-[32px] leading-none text-zinc-900 mb-4">List</h1>
 
-      {/* Tab switcher */}
-      <SegmentedControl
-        options={["exercises", "plans"]}
-        selected={tab}
-        onChange={setTab}
-      />
-
-      {tab === "exercises" ? (
-        <ExerciseTab
-          onLog={setLogTarget}
-          onEdit={(ex) => setExerciseFormTarget(ex)}
-          onAdd={() => setExerciseFormTarget("new")}
+        {/* Tab switcher */}
+        <SegmentedControl
+          options={["exercises", "plans"]}
+          selected={tab}
+          onChange={setTab}
         />
-      ) : (
-        <PlansTab
-          onLog={(ex, pe) => { setLogTarget(ex); setLogPrefill({ sets: pe.sets, reps: pe.reps }); }}
-          onStartWorkout={(plan: Plan) => openWithSession({ plan, exercises: allExercises })}
-          onAdd={() => setAddPlanOpen(true)}
-          onRequestPicker={handleRequestPicker}
-        />
-      )}
 
-      {/* Modals */}
-      <LogModal
-        exercise={logTarget}
-        isOpen={logTarget !== null}
-        onClose={() => { setLogTarget(null); setLogPrefill(undefined); }}
-        prefill={logPrefill}
-      />
-      <ExerciseFormModal
-        target={exerciseFormTarget}
-        isOpen={exerciseFormTarget !== null}
-        onClose={() => setExerciseFormTarget(null)}
-      />
-      <AddPlanModal isOpen={addPlanOpen} onClose={() => setAddPlanOpen(false)} />
-      <ExercisePicker
-        isOpen={exercisePickerOpen}
-        exercises={allExercises}
-        alreadySelected={pickerAlreadySelected}
-        onConfirm={(ids) => {
-          pickerCallback?.(ids);
-          setExercisePickerOpen(false);
-        }}
-        onClose={() => setExercisePickerOpen(false)}
-      />
+        {tab === "exercises" ? (
+          <ExerciseTab
+            onLog={setLogTarget}
+            onEdit={(ex) => setExerciseFormTarget(ex)}
+            onAdd={() => setExerciseFormTarget("new")}
+          />
+        ) : (
+          <PlansTab
+            onLog={(ex, pe) => { setLogTarget(ex); setLogPrefill({ sets: pe.sets, reps: pe.reps }); }}
+            onStartWorkout={(plan: Plan) => openWithSession({ plan, exercises: allExercises })}
+            onAdd={() => setAddPlanOpen(true)}
+            onRequestPicker={handleRequestPicker}
+          />
+        )}
+
+        {/* Modals */}
+        <LogModal
+          exercise={logTarget}
+          isOpen={logTarget !== null}
+          onClose={() => { setLogTarget(null); setLogPrefill(undefined); }}
+          prefill={logPrefill}
+        />
+        <ExerciseFormModal
+          target={exerciseFormTarget}
+          isOpen={exerciseFormTarget !== null}
+          onClose={() => setExerciseFormTarget(null)}
+        />
+        <AddPlanModal isOpen={addPlanOpen} onClose={() => setAddPlanOpen(false)} />
+        <ExercisePicker
+          isOpen={exercisePickerOpen}
+          exercises={allExercises}
+          alreadySelected={pickerAlreadySelected}
+          onConfirm={(ids) => {
+            pickerCallback?.(ids);
+            setExercisePickerOpen(false);
+          }}
+          onClose={() => setExercisePickerOpen(false)}
+        />
+      </div>
     </div>
   );
 }

@@ -42,56 +42,58 @@ export default function Random() {
   }, [pool]);
 
   return (
-    <div className="p-4 pb-28 overflow-hidden">
-      <h1 className="font-heading font-bold text-[32px] leading-none text-zinc-900 mb-6">Random</h1>
-      <CardStack
-        cards={deck}
-        layouts={["stack", "grid"]}
-        onCardClick={(x) => setLogTarget(x)}
-        cardSize={cardSize}
-      />
+    <div className="page-scroll">
+      <div className="p-4 pb-28 overflow-hidden">
+        <h1 className="font-heading font-bold text-[32px] leading-none text-zinc-900 mb-6">Random</h1>
+        <CardStack
+          cards={deck}
+          layouts={["stack", "grid"]}
+          onCardClick={(x) => setLogTarget(x)}
+          cardSize={cardSize}
+        />
 
 
-			{/* Shuffle Button */}
-      <AnimatePresence>
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 24 }}
-          transition={{ type: "spring", stiffness: 300, damping: 28 }}
-          className="fixed bottom-24 left-0 right-0 flex flex-col items-center gap-1.5 pointer-events-none z-40"
-        >
-          <motion.button
-            type="button"
-            onClick={shuffle}
-            whileTap={{ scale: 0.82, rotate: 20 }}
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: "spring", stiffness: 500, damping: 20 }}
-            className="w-15 h-15 rounded-full bg-orange-500 flex items-center justify-center shadow-lg shadow-orange-200 cursor-pointer pointer-events-auto"
+        {/* Shuffle Button */}
+        <AnimatePresence>
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 24 }}
+            transition={{ type: "spring", stiffness: 300, damping: 28 }}
+            className="fixed bottom-24 left-0 right-0 flex flex-col items-center gap-1.5 pointer-events-none z-40"
           >
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={diceIdx}
-                initial={{ rotate: -30, opacity: 0, scale: 0.7 }}
-                animate={{ rotate: 0, opacity: 1, scale: 1 }}
-                exit={{ rotate: 30, opacity: 0, scale: 0.7 }}
-                transition={{ type: "spring", stiffness: 400, damping: 20 }}
-              >
-                {(() => {
-                  const D = DICE_ICONS[diceIdx];
-                  return <D size={36} className="text-white" />;
-                })()}
-              </motion.div>
-            </AnimatePresence>
-          </motion.button>
-        </motion.div>
-      </AnimatePresence>
+            <motion.button
+              type="button"
+              onClick={shuffle}
+              whileTap={{ scale: 0.82, rotate: 20 }}
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 500, damping: 20 }}
+              className="w-15 h-15 rounded-full bg-orange-500 flex items-center justify-center shadow-lg shadow-orange-200 cursor-pointer pointer-events-auto"
+            >
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={diceIdx}
+                  initial={{ rotate: -30, opacity: 0, scale: 0.7 }}
+                  animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                  exit={{ rotate: 30, opacity: 0, scale: 0.7 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                >
+                  {(() => {
+                    const D = DICE_ICONS[diceIdx];
+                    return <D size={36} className="text-white" />;
+                  })()}
+                </motion.div>
+              </AnimatePresence>
+            </motion.button>
+          </motion.div>
+        </AnimatePresence>
 
-      <LogModal
-        exercise={logTarget}
-        isOpen={logTarget !== null}
-        onClose={() => setLogTarget(null)}
-      />
+        <LogModal
+          exercise={logTarget}
+          isOpen={logTarget !== null}
+          onClose={() => setLogTarget(null)}
+        />
+      </div>
     </div>
   );
 }

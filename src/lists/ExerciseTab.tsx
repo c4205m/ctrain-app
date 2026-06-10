@@ -44,7 +44,7 @@ export default function ExerciseTab({ onLog, onEdit, onAdd}: ExerciseTabProps) {
 
   return (
     <>
-      <div className="sticky top-0 py-4 bg-linear-to-b from-background from-80% to-transparent">
+      <div className="sticky top-0 z-10 py-4 bg-linear-to-b from-background from-80% to-transparent">
         <div className="flex gap-2">
           <div className="flex-1">
             <Input

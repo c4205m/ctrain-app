@@ -15,7 +15,7 @@ export default function App() {
   return (
     <>
     <MobileGate />
-    <div className="pb-20 md:hidden">
+    <div className="h-full md:hidden">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/filter" element={<Filter />} />
