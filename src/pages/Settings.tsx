@@ -26,6 +26,7 @@ import Button from "../components/Button";
 import Toggle from "../components/Toggle";
 import Input from "../components/Input";
 import ConfirmModal from "../components/ConfirmModal";
+import MovementTypeRow from "../components/MovementTypeRow";
 
 interface PendingAction {
   title: string;
@@ -467,12 +468,7 @@ export default function Settings() {
                 <div className="flex flex-col gap-2 mb-3">
                   {movementTypes?.length === 0 && <p className="text-xs text-zinc-400">No movement types yet.</p>}
                   {movementTypes?.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between bg-white rounded-xl px-3 py-2">
-                      <span className="text-sm text-zinc-800">{item.name}</span>
-                      <Button variant="ghost" size="sm" iconOnly onClick={() => handleDeleteMovementType(item)}>
-                        <X size={16} />
-                      </Button>
-                    </div>
+                    <MovementTypeRow key={item.id} item={item} onDelete={handleDeleteMovementType} />
                   ))}
                 </div>
                 <div className="flex gap-2">

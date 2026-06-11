@@ -81,6 +81,7 @@ export interface Equipment {
 export interface MovementTypeEntry {
   id?: string
   name: string
+  description?: string
 }
 
 export const db = new Dexie("cTrainDatabase") as Dexie & {
@@ -102,6 +103,17 @@ db.version(1).stores({
 
 db.version(2).stores({
     weightLogs: "&id, date",
+});
+
+// Backfill seed descriptions on movement types for existing installs
+db.version(3).stores({}).upgrade(async (tx) => {
+  const defaults = new Map(initialData.movementTypes.map((m) => [m.id, m.description]));
+  await tx.table("movementTypes").toCollection().modify((mt: MovementTypeEntry) => {
+    if (mt.description == null && mt.id != null) {
+      const d = defaults.get(mt.id);
+      if (d) mt.description = d;
+    }
+  });
 });
 
 db.on('populate', async () => {
@@ -301,8 +313,12 @@ export async function resetEquipmentToDefaults(): Promise<void> {
 }
 
 // Movement Types
-export async function addMovementType(name: string): Promise<void> {
-  await db.movementTypes.add({ id: crypto.randomUUID(), name })
+export async function addMovementType(name: string, description?: string): Promise<void> {
+  await db.movementTypes.add({ id: crypto.randomUUID(), name, description })
+}
+
+export async function updateMovementTypeDescription(id: string, description: string): Promise<void> {
+  await db.movementTypes.update(id, { description: description.trim() || undefined })
 }
 
 export async function countExercisesUsingMovementType(name: string): Promise<number> {

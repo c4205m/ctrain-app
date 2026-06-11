@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
+import type { MovementTypeEntry } from "../../../db/db";
 import Input from "../../../components/Input";
 import {
   type EditorDataset,
@@ -7,6 +8,7 @@ import {
   removeEquipment,
   addMovementType,
   removeMovementType,
+  setMovementTypeDescription,
 } from "../editorData";
 import { TabLayout, EmptyHint, thCls, tdCls } from "./shared";
 
@@ -14,13 +16,15 @@ const CONFIG = {
   equipment: {
     title: "Equipment",
     usageField: "tools" as const,
-    add: addEquipment,
+    hasDescription: false,
+    add: (ds: EditorDataset, name: string) => addEquipment(ds, name),
     remove: removeEquipment,
   },
   movementTypes: {
     title: "Movement types",
     usageField: "movementType" as const,
-    add: addMovementType,
+    hasDescription: true,
+    add: (ds: EditorDataset, name: string, description?: string) => addMovementType(ds, name, description),
     remove: removeMovementType,
   },
 };
@@ -35,7 +39,8 @@ export default function TagListTab({
   update: (fn: (ds: EditorDataset) => EditorDataset) => void;
 }) {
   const [name, setName] = useState("");
-  const { title, usageField, add, remove } = CONFIG[kind];
+  const [description, setDescription] = useState("");
+  const { title, usageField, hasDescription, add, remove } = CONFIG[kind];
   const items = dataset[kind];
 
   const usageCount = (itemName: string) =>
@@ -44,8 +49,9 @@ export default function TagListTab({
   function handleAdd() {
     const trimmed = name.trim();
     if (!trimmed || items.some((i) => i.name === trimmed)) return;
-    update((ds) => add(ds, trimmed));
+    update((ds) => add(ds, trimmed, description.trim() || undefined));
     setName("");
+    setDescription("");
   }
 
   return (
@@ -65,8 +71,17 @@ export default function TagListTab({
             placeholder={`New ${title.toLowerCase().replace(/s$/, "")}…`}
             value={name}
             onChange={(e) => setName(e.target.value)}
-            wrapperClassName="w-56"
+            wrapperClassName="w-48"
           />
+          {hasDescription && (
+            <Input
+              inputSize="sm"
+              placeholder="Description (optional)"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              wrapperClassName="w-64"
+            />
+          )}
           <button
             type="submit"
             className="px-4 py-2 rounded-xl bg-orange-500 text-white text-sm font-semibold cursor-pointer disabled:opacity-40"
@@ -84,6 +99,7 @@ export default function TagListTab({
             <thead>
               <tr>
                 <th className={thCls}>Name</th>
+                {hasDescription && <th className={`${thCls} w-1/2`}>Description</th>}
                 <th className={thCls}>Used by</th>
                 <th className={`${thCls} w-16`} />
               </tr>
@@ -94,6 +110,21 @@ export default function TagListTab({
                 return (
                   <tr key={item.id} className="border-t border-zinc-50 hover:bg-zinc-50">
                     <td className={`${tdCls} font-medium text-zinc-900`}>{item.name}</td>
+                    {hasDescription && (
+                      <td className={tdCls}>
+                        <input
+                          value={(item as MovementTypeEntry).description ?? ""}
+                          placeholder="Add description…"
+                          onChange={(e) =>
+                            update((ds) => setMovementTypeDescription(ds, item.id!, e.target.value))
+                          }
+                          onBlur={(e) =>
+                            update((ds) => setMovementTypeDescription(ds, item.id!, e.target.value.trim()))
+                          }
+                          className="w-full bg-transparent border border-transparent hover:border-zinc-200 rounded-lg px-2 py-1 text-sm text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                        />
+                      </td>
+                    )}
                     <td className={`${tdCls} text-zinc-500`}>
                       {used} exercise{used === 1 ? "" : "s"}
                     </td>

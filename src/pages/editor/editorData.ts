@@ -111,8 +111,17 @@ export function removeEquipment(ds: EditorDataset, id: string): EditorDataset {
   };
 }
 
-export function addMovementType(ds: EditorDataset, name: string): EditorDataset {
-  return { ...ds, movementTypes: [...ds.movementTypes, { id: crypto.randomUUID(), name }] };
+export function addMovementType(ds: EditorDataset, name: string, description?: string): EditorDataset {
+  return { ...ds, movementTypes: [...ds.movementTypes, { id: crypto.randomUUID(), name, description }] };
+}
+
+export function setMovementTypeDescription(ds: EditorDataset, id: string, description: string): EditorDataset {
+  return {
+    ...ds,
+    movementTypes: ds.movementTypes.map((m) =>
+      m.id === id ? { ...m, description: description || undefined } : m
+    ),
+  };
 }
 
 export function removeMovementType(ds: EditorDataset, id: string): EditorDataset {
