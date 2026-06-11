@@ -62,6 +62,7 @@ export default function Filter() {
           values={movementValues}
           selected={movementTypes}
           onToggle={(mt) => setMovementTypes(toggle(movementTypes, mt))}
+          searchable
         />
 
         {/* Tools */}
@@ -70,6 +71,7 @@ export default function Filter() {
           values={toolValues}
           selected={tools}
           onToggle={(tool) => setTools(toggle(tools, tool))}
+          searchable
         />
 
         <div className="sticky bottom-24 flex justify-center mt-8">

@@ -172,6 +172,7 @@ export default function ExerciseFormModal({ target, isOpen, onClose }: ExerciseF
                   values={allTools}
                   selected={form.tools}
                   onToggle={(t) => setForm((f) => ({ ...f, tools: toggle(f.tools, t) }))}
+                  searchable
                 />
               </div>
 
@@ -186,6 +187,7 @@ export default function ExerciseFormModal({ target, isOpen, onClose }: ExerciseF
                   onToggle={(m) =>
                     setForm((f) => ({ ...f, movementType: toggle(f.movementType, m) }))
                   }
+                  searchable
                 />
               </div>
 

@@ -1,13 +1,15 @@
 import { useRef, useLayoutEffect, useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Search } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Chip from './Chip'
+import Input from './Input'
 
 interface FilterChipGroupProps<T extends string> {
   values: T[]
   selected: T[]
   onToggle: (value: T) => void
   row?: number
+  searchable?: boolean
 }
 
 export default function FilterChipGroup<T extends string>({
@@ -15,12 +17,19 @@ export default function FilterChipGroup<T extends string>({
   selected,
   onToggle,
   row = 4,
+  searchable = false,
 }: FilterChipGroupProps<T>) {
   const [expanded, setExpanded] = useState(false)
+  const [query, setQuery] = useState('')
   const [collapsedHeight, setCollapsedHeight] = useState(0)
   const [fullHeight, setFullHeight] = useState(0)
   const [hasHiddenSelected, setHasHiddenSelected] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+
+  const searching = query.trim().length > 0
+  const visible = searching
+    ? values.filter((v) => v.toLowerCase().includes(query.trim().toLowerCase()))
+    : values
 
   // useLayoutEffect fires before paint so measurements are taken before framer sets maxHeight
   useLayoutEffect(() => {
@@ -41,27 +50,43 @@ export default function FilterChipGroup<T extends string>({
     const containerTop = container.getBoundingClientRect().top
     const hiddenSelected = chips.some((chip, i) => {
       const relativeTop = chip.getBoundingClientRect().top - containerTop
-      return relativeTop >= hiddenRowTop && selected.includes(values[i])
+      return relativeTop >= hiddenRowTop && selected.includes(visible[i])
     })
     setHasHiddenSelected(hiddenSelected)
-  }, [values, selected, row])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [values, selected, row, query])
 
   return (
     <div>
+      {searchable && (
+        <Input
+          icon={<Search size={14} />}
+          inputSize="sm"
+          placeholder="Search…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          wrapperClassName="mb-2"
+        />
+      )}
+
       <motion.div
         ref={containerRef}
         className="flex flex-wrap gap-2 overflow-hidden"
-        animate={{ maxHeight: expanded ? fullHeight : collapsedHeight }}
+        animate={{ maxHeight: expanded || searching ? fullHeight : collapsedHeight }}
         transition={{ type: 'spring', stiffness: 300, damping: 35 }}
       >
-        {values.map((v) => (
+        {visible.map((v) => (
           <button key={v} type="button" onClick={() => onToggle(v)}>
             <Chip variant={selected.includes(v) ? 'primary' : 'disabled'}>{v}</Chip>
           </button>
         ))}
       </motion.div>
 
-      {fullHeight > collapsedHeight && <motion.button
+      {searching && visible.length === 0 && (
+        <p className="text-xs text-zinc-400 mt-1">No matches.</p>
+      )}
+
+      {!searching && fullHeight > collapsedHeight && <motion.button
         type="button"
         onClick={() => setExpanded((e) => !e)}
         animate={{ color: !expanded && hasHiddenSelected ? '#f97316' : '#a1a1aa' }}
