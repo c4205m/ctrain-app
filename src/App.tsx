@@ -11,12 +11,24 @@ import BottomNav from "./components/BottomNav";
 import FloatTimerButton from "./components/FloatTimerButton";
 import MobileGate from "./components/MobileGate";
 import ProfileSetupModal from "./components/ProfileSetupModal";
+import DesktopEditor from "./pages/editor/DesktopEditor";
+import { useLocation } from "react-router-dom";
 
 export default function App() {
+  const isEditor = useLocation().pathname === "/editor";
+
   return (
     <>
-    <MobileGate />
-    <ProfileSetupModal />
+    {isEditor ? (
+      <Routes>
+        <Route path="/editor" element={<DesktopEditor />} />
+      </Routes>
+    ) : (
+      <>
+        <MobileGate />
+        <ProfileSetupModal />
+      </>
+    )}
     <div className="h-full md:hidden">
       <Routes>
         <Route path="/" element={<Home />} />

@@ -1,7 +1,10 @@
 import { motion } from "framer-motion";
-import { Smartphone } from "lucide-react";
+import { Smartphone, DatabaseZap } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function MobileGate() {
+  const navigate = useNavigate();
+
   return (
     <div className="hidden md:flex fixed inset-0 z-9999 bg-white flex-col items-center justify-center gap-6 select-none">
       <motion.div
@@ -42,6 +45,21 @@ export default function MobileGate() {
           transition={{ delay: 0.3, type: "spring", stiffness: 500, damping: 25 }}
           className="w-1.5 h-1.5 rounded-full bg-orange-400"
         />
+
+        {/* Edit data */}
+        <motion.button
+          type="button"
+          onClick={() => navigate("/editor")}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.38, duration: 0.35, ease: "easeOut" }}
+          whileTap={{ scale: 0.96 }}
+          style={{ willChange: "transform" }}
+          className="flex items-center gap-2 px-5 py-3 rounded-xl bg-orange-50 text-orange-600 text-sm font-semibold cursor-pointer"
+        >
+          <DatabaseZap size={16} />
+          Edit my data
+        </motion.button>
       </motion.div>
     </div>
   );
