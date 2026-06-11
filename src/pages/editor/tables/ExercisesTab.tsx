@@ -164,7 +164,7 @@ export default function ExercisesTab({
             />
 
             <TagToggleGroup
-              label="Movement type"
+              label="Move"
               all={dataset.movementTypes.map((m) => m.name)}
               active={selected.movementType}
               onToggle={(name) => patch({ movementType: toggleItem(selected.movementType, name) })}

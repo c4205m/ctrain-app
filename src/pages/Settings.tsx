@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { toast } from "sonner";
-import { X, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
@@ -13,12 +13,17 @@ import {
   isValidBackup,
   addEquipment,
   deleteEquipment,
+  renameEquipment,
   countExercisesUsingTool,
   resetEquipmentToDefaults,
   addMovementType,
   deleteMovementType,
+  renameMovementType,
+  updateMovementTypeDescription,
   countExercisesUsingMovementType,
   resetMovementTypesToDefaults,
+  type Equipment,
+  type MovementTypeEntry,
 } from "../db/db";
 import { useSettingsStore, STAT_KEYS, STAT_LABELS } from "../store/settingsStore";
 import { useFilterStore } from "../store/filterStore";
@@ -26,7 +31,7 @@ import Button from "../components/Button";
 import Toggle from "../components/Toggle";
 import Input from "../components/Input";
 import ConfirmModal from "../components/ConfirmModal";
-import MovementTypeRow from "../components/MovementTypeRow";
+import EditableTagRow from "../components/EditableTagRow";
 
 interface PendingAction {
   title: string;
@@ -139,11 +144,20 @@ export default function Settings() {
     });
   }
 
+  async function handleSaveTool(item: Equipment, name: string) {
+    if (name !== item.name) await renameEquipment(item.id!, item.name, name);
+  }
+
   async function handleAddMovementType() {
     const name = newMovementType.trim();
     if (!name) return;
     await addMovementType(name);
     setNewMovementType("");
+  }
+
+  async function handleSaveMovementType(item: MovementTypeEntry, name: string, description: string) {
+    if (name !== item.name) await renameMovementType(item.id!, item.name, name);
+    if (description !== (item.description ?? "")) await updateMovementTypeDescription(item.id!, description);
   }
 
   async function handleDeleteMovementType(item: { id?: string; name: string }) {
@@ -156,7 +170,7 @@ export default function Settings() {
       confirmLabel: "Delete",
       run: async () => {
         await deleteMovementType(item.id!, item.name);
-        toast.success("Movement type deleted");
+        toast.success("Move deleted");
       },
     });
   }
@@ -312,20 +326,20 @@ export default function Settings() {
 
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-zinc-800">Reset Movement Types</p>
-                      <p className="text-xs text-zinc-400">Restore default movement type list</p>
+                      <p className="text-sm font-medium text-zinc-800">Reset Moves</p>
+                      <p className="text-xs text-zinc-400">Restore default move list</p>
                     </div>
                     <Button
                       variant="danger"
                       size="sm"
                       onClick={() =>
                         setPendingAction({
-                          title: "Reset movement types to defaults?",
-                          description: "Replaces your current movement type list with the default set. This cannot be undone.",
+                          title: "Reset moves to defaults?",
+                          description: "Replaces your current move list with the default set. This cannot be undone.",
                           confirmLabel: "Reset",
                           run: async () => {
                             await resetMovementTypesToDefaults();
-                            toast.success("Movement types reset");
+                            toast.success("Moves reset");
                           },
                         })
                       }
@@ -409,16 +423,17 @@ export default function Settings() {
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="overflow-hidden"
             >
-              <div className="pt-4">
+              <div className="pt-4 px-0.5 pb-0.5">
                 <div className="flex flex-col gap-2 mb-3">
                   {equipment?.length === 0 && <p className="text-xs text-zinc-400">No tools yet.</p>}
                   {equipment?.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between bg-white rounded-xl px-3 py-2">
-                      <span className="text-sm text-zinc-800">{item.name}</span>
-                      <Button variant="ghost" size="sm" iconOnly onClick={() => handleDeleteTool(item)}>
-                        <X size={16} />
-                      </Button>
-                    </div>
+                    <EditableTagRow
+                      key={item.id}
+                      item={item}
+                      takenNames={equipment.map((e) => e.name)}
+                      onDelete={handleDeleteTool}
+                      onSave={(it, name) => handleSaveTool(it as Equipment, name)}
+                    />
                   ))}
                 </div>
                 <div className="flex gap-2">
@@ -447,7 +462,7 @@ export default function Settings() {
           onClick={() => setMovementExpanded((e) => !e)}
           className="w-full flex items-center justify-between cursor-pointer"
         >
-          <h2 className="font-heading font-semibold text-base text-zinc-900">Movement Types</h2>
+          <h2 className="font-heading font-semibold text-base text-zinc-900">Moves</h2>
           <motion.div
             animate={{ rotate: movementExpanded ? 180 : 0 }}
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
@@ -464,18 +479,27 @@ export default function Settings() {
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="overflow-hidden"
             >
-              <div className="pt-4">
+              <div className="pt-4 px-0.5 pb-0.5">
                 <div className="flex flex-col gap-2 mb-3">
-                  {movementTypes?.length === 0 && <p className="text-xs text-zinc-400">No movement types yet.</p>}
+                  {movementTypes?.length === 0 && <p className="text-xs text-zinc-400">No moves yet.</p>}
                   {movementTypes?.map((item) => (
-                    <MovementTypeRow key={item.id} item={item} onDelete={handleDeleteMovementType} />
+                    <EditableTagRow
+                      key={item.id}
+                      item={item}
+                      withDescription
+                      takenNames={movementTypes.map((m) => m.name)}
+                      onDelete={handleDeleteMovementType}
+                      onSave={(it, name, description) =>
+                        handleSaveMovementType(it as MovementTypeEntry, name, description)
+                      }
+                    />
                   ))}
                 </div>
                 <div className="flex gap-2">
                   <div className="flex-1">
                     <Input
                       inputSize="sm"
-                      placeholder="New movement type"
+                      placeholder="New move"
                       value={newMovementType}
                       onChange={(e) => setNewMovementType(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleAddMovementType()}

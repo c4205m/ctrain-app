@@ -29,7 +29,7 @@ const TABS = [
   { key: "exercises", label: "Exercises", icon: Dumbbell },
   { key: "plans", label: "Plans", icon: ClipboardList },
   { key: "equipment", label: "Equipment", icon: Wrench },
-  { key: "movementTypes", label: "Movement types", icon: MoveDiagonal },
+  { key: "movementTypes", label: "Moves", icon: MoveDiagonal },
   { key: "weightLogs", label: "Weight logs", icon: Scale },
   { key: "profile", label: "Profile", icon: UserRound },
 ] as const;

@@ -305,6 +305,18 @@ export async function deleteEquipment(id: string, name: string): Promise<void> {
   })
 }
 
+export async function renameEquipment(id: string, oldName: string, newName: string): Promise<void> {
+  await db.transaction("rw", [db.equipment, db.exercises], async () => {
+    await db.equipment.update(id, { name: newName })
+    const exercises = await db.exercises.filter((ex) => ex.tools.includes(oldName)).toArray()
+    await Promise.all(
+      exercises.map((ex) =>
+        db.exercises.update(ex.id!, { tools: ex.tools.map((t) => (t === oldName ? newName : t)) })
+      )
+    )
+  })
+}
+
 export async function resetEquipmentToDefaults(): Promise<void> {
   await db.transaction("rw", db.equipment, async () => {
     await db.equipment.clear()
@@ -332,6 +344,20 @@ export async function deleteMovementType(id: string, name: string): Promise<void
     const exercises = await db.exercises.filter((ex) => ex.movementType.includes(name)).toArray()
     await Promise.all(
       exercises.map((ex) => db.exercises.update(ex.id!, { movementType: ex.movementType.filter((t) => t !== name) }))
+    )
+  })
+}
+
+export async function renameMovementType(id: string, oldName: string, newName: string): Promise<void> {
+  await db.transaction("rw", [db.movementTypes, db.exercises], async () => {
+    await db.movementTypes.update(id, { name: newName })
+    const exercises = await db.exercises.filter((ex) => ex.movementType.includes(oldName)).toArray()
+    await Promise.all(
+      exercises.map((ex) =>
+        db.exercises.update(ex.id!, {
+          movementType: ex.movementType.map((t) => (t === oldName ? newName : t)),
+        })
+      )
     )
   })
 }

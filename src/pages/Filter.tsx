@@ -57,7 +57,7 @@ export default function Filter() {
         />
 
         {/* Movement Type */}
-        <h2 className="font-heading font-semibold text-sm text-zinc-900 mb-3 mt-5">Movement Type</h2>
+        <h2 className="font-heading font-semibold text-sm text-zinc-900 mb-3 mt-5">Move</h2>
         <FilterChipGroup
           values={movementValues}
           selected={movementTypes}

@@ -178,7 +178,7 @@ export default function ExerciseFormModal({ target, isOpen, onClose }: ExerciseF
               {/* Movement Type */}
               <div>
                 <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wide mb-1.5">
-                  Movement Type
+                  Move
                 </div>
                 <FilterChipGroup
                   values={allMovement}

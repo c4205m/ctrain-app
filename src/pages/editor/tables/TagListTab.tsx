@@ -22,7 +22,7 @@ const CONFIG = {
     remove: removeEquipment,
   },
   movementTypes: {
-    title: "Movement types",
+    title: "Moves",
     usageField: "movementType" as const,
     hasDescription: true,
     add: (ds: EditorDataset, name: string, description?: string) => addMovementType(ds, name, description),
