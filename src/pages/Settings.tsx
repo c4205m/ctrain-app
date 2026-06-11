@@ -40,6 +40,8 @@ interface PendingAction {
   run: () => Promise<void>;
 }
 
+type SectionKey = "reset" | "tools" | "moves" | "stats";
+
 export default function Settings() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
@@ -49,19 +51,41 @@ export default function Settings() {
 
   const [exerciseCount, setExerciseCount] = useState<number | null>(null);
   const [planCount, setPlanCount] = useState<number | null>(null);
+  const [emptyPlanCount, setEmptyPlanCount] = useState(0);
 
   const equipment = useLiveQuery(() => db.equipment.orderBy("name").toArray(), []);
   const movementTypes = useLiveQuery(() => db.movementTypes.orderBy("name").toArray(), []);
   const [newTool, setNewTool] = useState("");
   const [newMovementType, setNewMovementType] = useState("");
-  const [toolsExpanded, setToolsExpanded] = useState(false);
-  const [movementExpanded, setMovementExpanded] = useState(false);
-  const [statsExpanded, setStatsExpanded] = useState(false);
-  const [resetActionsExpanded, setResetActionsExpanded] = useState(false);
+  const [openSection, setOpenSection] = useState<SectionKey | null>(null);
+  const sectionRefs = useRef<Record<SectionKey, HTMLDivElement | null>>({
+    reset: null,
+    tools: null,
+    moves: null,
+    stats: null,
+  });
+  // Modal renders outside the section element; its clicks must not collapse the section
+  const pendingActionRef = useRef(pendingAction);
+  pendingActionRef.current = pendingAction;
+
+  const toggleSection = (key: SectionKey) => setOpenSection((s) => (s === key ? null : key));
 
   useEffect(() => {
-    db.exercises.count().then(setExerciseCount);
-    db.plans.count().then(setPlanCount);
+    function handlePointerDown(e: PointerEvent) {
+      if (pendingActionRef.current) return;
+      setOpenSection((open) => {
+        if (!open) return open;
+        const el = sectionRefs.current[open];
+        return el && !el.contains(e.target as Node) ? null : open;
+      });
+    }
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, []);
+
+  useEffect(() => {
+    refreshCounts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -95,9 +119,14 @@ export default function Settings() {
   }
 
   async function refreshCounts() {
-    const [ec, pc] = await Promise.all([db.exercises.count(), db.plans.count()]);
+    const [ec, pc, epc] = await Promise.all([
+      db.exercises.count(),
+      db.plans.count(),
+      db.plans.filter((p) => p.exercises.length === 0).count(),
+    ]);
     setExerciseCount(ec);
     setPlanCount(pc);
+    setEmptyPlanCount(epc);
   }
 
   async function handleConfirmAction() {
@@ -192,6 +221,11 @@ export default function Settings() {
           <div className="flex-1 bg-white rounded-xl px-3 py-2">
             <p className="text-xs text-zinc-400">Plans</p>
             <p className="text-lg font-bold text-zinc-900 leading-tight">{planCount ?? "—"}</p>
+            {emptyPlanCount > 0 && (
+              <p className="text-[10px] font-medium text-amber-600">
+                {emptyPlanCount} empty plan{emptyPlanCount === 1 ? "" : "s"}
+              </p>
+            )}
           </div>
         </div>
 
@@ -220,14 +254,15 @@ export default function Settings() {
 
           <div className="h-px bg-zinc-200" />
 
+          <div ref={(el) => { sectionRefs.current.reset = el; }}>
           <button
             type="button"
-            onClick={() => setResetActionsExpanded((e) => !e)}
+            onClick={() => toggleSection("reset")}
             className="w-full flex items-center justify-between cursor-pointer"
           >
             <p className="text-sm font-medium text-zinc-800">Reset & Erase</p>
             <motion.div
-              animate={{ rotate: resetActionsExpanded ? 180 : 0 }}
+              animate={{ rotate: openSection === "reset" ? 180 : 0 }}
               transition={{ type: "spring", stiffness: 400, damping: 30 }}
             >
               <ChevronDown size={18} className="text-zinc-400" />
@@ -235,7 +270,7 @@ export default function Settings() {
           </button>
 
           <AnimatePresence initial={false}>
-            {resetActionsExpanded && (
+            {openSection === "reset" && (
               <motion.div
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: "auto", opacity: 1 }}
@@ -378,6 +413,7 @@ export default function Settings() {
               </motion.div>
             )}
           </AnimatePresence>
+          </div>
         </div>
       </div>
 
@@ -400,22 +436,22 @@ export default function Settings() {
         </label>
       </div>
 
-      <div className="bg-zinc-100 rounded-2xl p-4 shadow-sm mt-3">
+      <div ref={(el) => { sectionRefs.current.tools = el; }} className="bg-zinc-100 rounded-2xl p-4 shadow-sm mt-3">
         <button
           type="button"
-          onClick={() => setToolsExpanded((e) => !e)}
+          onClick={() => toggleSection("tools")}
           className="w-full flex items-center justify-between cursor-pointer"
         >
           <h2 className="font-heading font-semibold text-base text-zinc-900">Tools</h2>
           <motion.div
-            animate={{ rotate: toolsExpanded ? 180 : 0 }}
+            animate={{ rotate: openSection === "tools" ? 180 : 0 }}
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
           >
             <ChevronDown size={18} className="text-zinc-400" />
           </motion.div>
         </button>
         <AnimatePresence initial={false}>
-          {toolsExpanded && (
+          {openSection === "tools" && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
@@ -456,22 +492,22 @@ export default function Settings() {
         </AnimatePresence>
       </div>
 
-      <div className="bg-zinc-100 rounded-2xl p-4 shadow-sm mt-3">
+      <div ref={(el) => { sectionRefs.current.moves = el; }} className="bg-zinc-100 rounded-2xl p-4 shadow-sm mt-3">
         <button
           type="button"
-          onClick={() => setMovementExpanded((e) => !e)}
+          onClick={() => toggleSection("moves")}
           className="w-full flex items-center justify-between cursor-pointer"
         >
           <h2 className="font-heading font-semibold text-base text-zinc-900">Moves</h2>
           <motion.div
-            animate={{ rotate: movementExpanded ? 180 : 0 }}
+            animate={{ rotate: openSection === "moves" ? 180 : 0 }}
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
           >
             <ChevronDown size={18} className="text-zinc-400" />
           </motion.div>
         </button>
         <AnimatePresence initial={false}>
-          {movementExpanded && (
+          {openSection === "moves" && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
@@ -515,22 +551,22 @@ export default function Settings() {
         </AnimatePresence>
       </div>
 
-      <div className="bg-zinc-100 rounded-2xl p-4 shadow-sm mt-3">
+      <div ref={(el) => { sectionRefs.current.stats = el; }} className="bg-zinc-100 rounded-2xl p-4 shadow-sm mt-3">
         <button
           type="button"
-          onClick={() => setStatsExpanded((e) => !e)}
+          onClick={() => toggleSection("stats")}
           className="w-full flex items-center justify-between cursor-pointer"
         >
           <h2 className="font-heading font-semibold text-base text-zinc-900">Stats</h2>
           <motion.div
-            animate={{ rotate: statsExpanded ? 180 : 0 }}
+            animate={{ rotate: openSection === "stats" ? 180 : 0 }}
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
           >
             <ChevronDown size={18} className="text-zinc-400" />
           </motion.div>
         </button>
         <AnimatePresence initial={false}>
-          {statsExpanded && (
+          {openSection === "stats" && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
