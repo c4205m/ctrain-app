@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { type MovementTypeEntry, updateMovementTypeDescription } from "../db/db";
@@ -13,16 +13,23 @@ interface MovementTypeRowProps {
 export default function MovementTypeRow({ item, onDelete }: MovementTypeRowProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
+  // Mirrors `editing` synchronously: Enter triggers save, then the input
+  // unmounts and its blur fires save again before state has re-rendered.
+  const editingRef = useRef(false);
 
   function open() {
     setDraft(item.description ?? "");
+    editingRef.current = true;
     setEditing(true);
   }
 
   async function save() {
+    if (!editingRef.current) return;
+    editingRef.current = false;
     setEditing(false);
-    if (draft.trim() !== (item.description ?? "")) {
-      await updateMovementTypeDescription(item.id!, draft);
+    const trimmed = draft.trim();
+    if (trimmed !== (item.description ?? "")) {
+      await updateMovementTypeDescription(item.id!, trimmed);
     }
   }
 

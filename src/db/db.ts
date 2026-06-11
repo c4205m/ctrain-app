@@ -318,6 +318,7 @@ export async function addMovementType(name: string, description?: string): Promi
 }
 
 export async function updateMovementTypeDescription(id: string, description: string): Promise<void> {
+  // Dexie deletes the key when the update value is undefined — empty input removes the field
   await db.movementTypes.update(id, { description: description.trim() || undefined })
 }
 

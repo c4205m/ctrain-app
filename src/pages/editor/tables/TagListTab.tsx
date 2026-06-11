@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 import type { MovementTypeEntry } from "../../../db/db";
 import Input from "../../../components/Input";
@@ -48,7 +49,11 @@ export default function TagListTab({
 
   function handleAdd() {
     const trimmed = name.trim();
-    if (!trimmed || items.some((i) => i.name === trimmed)) return;
+    if (!trimmed) return;
+    if (items.some((i) => i.name === trimmed)) {
+      toast.error(`"${trimmed}" already exists`);
+      return;
+    }
     update((ds) => add(ds, trimmed, description.trim() || undefined));
     setName("");
     setDescription("");
