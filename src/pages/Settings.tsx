@@ -361,12 +361,12 @@ export default function Settings() {
                       onClick={() =>
                         setPendingAction({
                           title: "Erase all data?",
-                          description: "This will permanently delete all exercises, plans, logs, and equipment. Profile data is kept. Cannot be undone.",
+                          description: "This will permanently delete all exercises and plans. Tools, moves, weight logs and profile are kept. Cannot be undone.",
                           confirmLabel: "Erase",
                           run: async () => {
                             await eraseData();
                             await refreshCounts();
-                            toast.success("All data erased");
+                            toast.success("Exercises and plans erased");
                           },
                         })
                       }
