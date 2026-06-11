@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Toaster } from 'sonner'
 import './index.css'
+import './utils/pwaUpdate'
 import App from './App.tsx'
 import { BrowserRouter } from 'react-router-dom'
 

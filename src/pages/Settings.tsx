@@ -32,6 +32,15 @@ import Toggle from "../components/Toggle";
 import Input from "../components/Input";
 import ConfirmModal from "../components/ConfirmModal";
 import EditableTagRow from "../components/EditableTagRow";
+import { checkForUpdates } from "../utils/pwaUpdate";
+
+const BUILD_LABEL = new Date(__BUILD_DATE__).toLocaleString(undefined, {
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+});
 
 interface PendingAction {
   title: string;
@@ -49,6 +58,7 @@ export default function Settings() {
   const { visibleStats, setStatVisible, chipSearchEnabled, setChipSearchEnabled } = useSettingsStore();
   const { filterMode, setFilterMode } = useFilterStore();
 
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
   const [exerciseCount, setExerciseCount] = useState<number | null>(null);
   const [planCount, setPlanCount] = useState<number | null>(null);
   const [emptyPlanCount, setEmptyPlanCount] = useState(0);
@@ -148,6 +158,20 @@ export default function Settings() {
       toast.success("Backup saved");
     } catch {
       toast.error("Export failed");
+    }
+  }
+
+  async function handleCheckUpdates() {
+    setCheckingUpdate(true);
+    try {
+      const updating = await checkForUpdates();
+      // A found update activates and reloads the page on its own (autoUpdate)
+      if (updating) toast.info("Update found, restarting…");
+      else toast.success("Up to date");
+    } catch {
+      toast.error("Update check failed");
+    } finally {
+      setCheckingUpdate(false);
     }
   }
 
@@ -612,8 +636,16 @@ export default function Settings() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-zinc-800">cTrain</p>
-              <p className="text-xs text-zinc-400">Version 1.0.0</p>
+              <p className="text-xs text-zinc-400">Build {BUILD_LABEL}</p>
             </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              loading={checkingUpdate}
+              onClick={handleCheckUpdates}
+            >
+              Check for updates
+            </Button>
           </div>
 
           <div className="h-px bg-zinc-200" />
