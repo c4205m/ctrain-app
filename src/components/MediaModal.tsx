@@ -35,7 +35,7 @@ function MediaSkeleton() {
         animate={{ x: ["-100%", "100%"] }}
         transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
         style={{ willChange: "transform" }}
-        className="absolute inset-y-0 w-2/3 bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent"
+        className="absolute inset-y-0 w-2/3 bg-linear-to-r from-transparent via-zinc-700/60 to-transparent"
       />
     </motion.div>
   );

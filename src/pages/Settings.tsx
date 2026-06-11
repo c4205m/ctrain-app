@@ -46,7 +46,7 @@ export default function Settings() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
-  const { visibleStats, setStatVisible } = useSettingsStore();
+  const { visibleStats, setStatVisible, chipSearchEnabled, setChipSearchEnabled } = useSettingsStore();
   const { filterMode, setFilterMode } = useFilterStore();
 
   const [exerciseCount, setExerciseCount] = useState<number | null>(null);
@@ -418,8 +418,7 @@ export default function Settings() {
       </div>
 
       <div className="bg-zinc-100 rounded-2xl p-4 shadow-sm mt-3">
-        <h2 className="font-heading font-semibold text-base text-zinc-900 mb-1">Filters</h2>
-        <p className="text-xs text-zinc-400 mb-4">Controls how muscle and equipment filters combine when you select multiple options.</p>
+        <h2 className="font-heading font-semibold text-base text-zinc-900 mb-4">Filters</h2>
         <label className="flex items-center justify-between cursor-pointer">
           <div>
             <p className="text-sm font-medium text-zinc-800">Match Any</p>
@@ -432,6 +431,19 @@ export default function Settings() {
           <Toggle
             checked={filterMode === "additive"}
             onChange={(v) => setFilterMode(v ? "additive" : "intersection")}
+          />
+        </label>
+
+        <div className="h-px bg-zinc-200 my-3" />
+
+        <label className="flex items-center justify-between cursor-pointer">
+          <div>
+            <p className="text-sm font-medium text-zinc-800">Chip Search</p>
+            <p className="text-xs text-zinc-400">Show a search box above tool and move chips</p>
+          </div>
+          <Toggle
+            checked={chipSearchEnabled}
+            onChange={setChipSearchEnabled}
           />
         </label>
       </div>

@@ -38,6 +38,8 @@ interface SettingsState {
   setStatVisible: (key: StatKey, visible: boolean) => void;
   onboardingComplete: boolean;
   setOnboardingComplete: () => void;
+  chipSearchEnabled: boolean;
+  setChipSearchEnabled: (enabled: boolean) => void;
 }
 
 const DEFAULT_VISIBLE = Object.fromEntries(
@@ -52,6 +54,8 @@ export const useSettingsStore = create<SettingsState>()(
         set((s) => ({ visibleStats: { ...s.visibleStats, [key]: visible } })),
       onboardingComplete: false,
       setOnboardingComplete: () => set({ onboardingComplete: true }),
+      chipSearchEnabled: false,
+      setChipSearchEnabled: (enabled) => set({ chipSearchEnabled: enabled }),
     }),
     { name: "ctrain-settings" }
   )

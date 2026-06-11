@@ -5,6 +5,7 @@ import { ClipboardList } from "lucide-react";
 import { useStopwatchStore, type PlanSession } from "../store/stopwatchStore";
 import LogModal from "../components/LogModal";
 import type { Exercise } from "../db/db";
+import { useWakeLock } from "../utils/useWakeLock";
 
 function formatTime(ms: number): string {
   const totalSecs = Math.floor(ms / 1000);
@@ -34,10 +35,10 @@ export default function Stopwatch({ onClose }: StopwatchProps) {
   const navigate = useNavigate();
 
   const {
-    running, laps, currentLabel, isComplete, exIdx, currentSet,
+    running, laps, currentLabel, isComplete, exIdx, setsDone,
     lapStartBase, session,
     getElapsed, start, pause, reset, recordLap, addExerciseDoneMarker,
-    setCurrentLabel, setIsComplete, setExIdx, setCurrentSet, setSession,
+    setCurrentLabel, setIsComplete, selectExercise, incrementSetDone, setSession,
   } = useStopwatchStore();
 
   // Sync session from location.state on mount only
@@ -47,6 +48,8 @@ export default function Stopwatch({ onClose }: StopwatchProps) {
   }, []);
 
   const isPlanMode = !!session;
+
+  useWakeLock(running);
 
   // Local display state — RAF updates this while mounted; store holds truth
   const [displayElapsed, setDisplayElapsed] = useState(() => getElapsed());
@@ -67,9 +70,21 @@ export default function Stopwatch({ onClose }: StopwatchProps) {
 
   const currentLapElapsed = displayElapsed - lapStartBase;
 
-  const planEx = session?.plan.exercises[exIdx];
+  const planExercises = session?.plan.exercises ?? [];
+  const planEx = planExercises[exIdx];
   const planExercise = session?.exercises.find((e) => e.id === planEx?.exerciseId);
   const totalSets = planEx?.sets ?? 1;
+  const currentSet = (setsDone[exIdx] ?? 0) + 1;
+
+  const exerciseName = (pe: { exerciseId: string }) =>
+    session?.exercises.find((e) => e.id === pe.exerciseId)?.name ?? "Exercise";
+  // Untouched exercises first (plan order), then partially-done ones — partials are
+  // deferred to the end unless the user explicitly taps them
+  const isPartial = (i: number) => (setsDone[i] ?? 0) > 0;
+  const remaining = planExercises
+    .map((pe, i) => ({ pe, i }))
+    .filter(({ pe, i }) => i !== exIdx && (setsDone[i] ?? 0) < pe.sets);
+  const upNext = [...remaining.filter(({ i }) => !isPartial(i)), ...remaining.filter(({ i }) => isPartial(i))];
 
   const isRest = currentLabel === "Rest";
   const clockColor = displayElapsed > 0
@@ -81,7 +96,8 @@ export default function Stopwatch({ onClose }: StopwatchProps) {
 
   const longPressRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const didLongPressRef = useRef(false);
-  const setDurationsRef = useRef<number[]>([]);
+  // Set durations per plan-exercise index — survives switching exercises mid-way
+  const setDurationsRef = useRef<Record<number, number[]>>({});
 
   const topContentRef = useRef<HTMLDivElement>(null);
   const [centerPad, setCenterPad] = useState(() => Math.round(window.innerHeight * 0.35));
@@ -95,11 +111,34 @@ export default function Stopwatch({ onClose }: StopwatchProps) {
   function handleReset() {
     reset();
     setDisplayElapsed(0);
-    setDurationsRef.current = [];
+    setDurationsRef.current = {};
     if (isPlanMode) {
       if (onClose) onClose();
       else navigate("/dev/stopwatch", { replace: true, state: null });
     }
+  }
+
+  function avgDuration(idx: number): number | undefined {
+    const ms = setDurationsRef.current[idx];
+    if (!ms || ms.length === 0) return undefined;
+    return Math.round(((ms.reduce((a, b) => a + b, 0) / ms.length) / 1000) * 100) / 100;
+  }
+
+  function handleFinishWorkout() {
+    planExercises.forEach((pe, i) => {
+      const done = setsDone[i] ?? 0;
+      if (done >= 1 && done < pe.sets) {
+        addExerciseDoneMarker({
+          label: exerciseName(pe),
+          exerciseId: pe.exerciseId,
+          sets: done,
+          reps: pe.reps,
+          duration: avgDuration(i),
+        });
+      }
+    });
+    pause();
+    setIsComplete(true);
   }
 
   function handleLap(type: "Work" | "Rest") {
@@ -113,35 +152,35 @@ export default function Stopwatch({ onClose }: StopwatchProps) {
 
     if (isPlanMode && currentLabel === "Work") {
       const isLastSet = currentSet >= totalSets;
-      const isLastExercise = exIdx + 1 >= (session?.plan.exercises.length ?? 0);
-      const exerciseName = planExercise?.name ?? "Exercise";
-      lapLabel = `${exerciseName} • Set ${currentSet}`;
+      const name = planExercise?.name ?? "Exercise";
+      lapLabel = `${name} • Set ${currentSet}`;
 
       const thisSetMs = getElapsed() - lapStartBase;
-      setDurationsRef.current.push(thisSetMs);
+      (setDurationsRef.current[exIdx] ??= []).push(thisSetMs);
+      incrementSetDone(exIdx);
 
       if (isLastSet) {
-        const allSetMs = setDurationsRef.current;
-        const avgMs = allSetMs.reduce((a, b) => a + b, 0) / allSetMs.length;
-        setDurationsRef.current = [];
-
         exerciseDoneMarker = {
-          label: exerciseName,
+          label: name,
           exerciseId: planEx?.exerciseId,
           sets: planEx?.sets,
           reps: planEx?.reps,
-          duration: Math.round((avgMs / 1000) * 100) / 100,
+          duration: avgDuration(exIdx),
         };
-      }
 
-      if (isLastSet && isLastExercise) {
-        pause();
-        setIsComplete(true);
-      } else if (isLastSet) {
-        setExIdx((i) => i + 1);
-        setCurrentSet(() => 1);
-      } else {
-        setCurrentSet((s) => s + 1);
+        // setsDone in closure is pre-increment; current exercise just finished.
+        // Untouched exercises first — partials wait until the end.
+        const candidates = planExercises
+          .map((pe, i) => ({ pe, i }))
+          .filter(({ pe, i }) => i !== exIdx && (setsDone[i] ?? 0) < pe.sets);
+        const next =
+          candidates.find(({ i }) => (setsDone[i] ?? 0) === 0) ?? candidates[0];
+        if (!next) {
+          pause();
+          setIsComplete(true);
+        } else {
+          selectExercise(next.i);
+        }
       }
     }
 
@@ -225,6 +264,55 @@ export default function Stopwatch({ onClose }: StopwatchProps) {
               >
                 Rest
               </motion.button>
+            </div>
+          )}
+
+          {/* Up next */}
+          {isPlanMode && !isComplete && (
+            <div className="mb-4">
+              {upNext.length > 0 && (
+                <>
+                  <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wide">
+                    Up next
+                  </span>
+                  <div className="flex gap-2 overflow-x-auto mt-1.5 -mx-4 px-4 pb-1">
+                    <AnimatePresence initial={false}>
+                      {upNext.map(({ pe, i }) => (
+                        <motion.button
+                          key={i}
+                          type="button"
+                          layout
+                          initial={{ opacity: 0, scale: 0.85 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.85 }}
+                          transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                          style={{ willChange: "transform" }}
+                          onClick={() => selectExercise(i)}
+                          className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full cursor-pointer ${
+                            isPartial(i) ? "bg-amber-50" : "bg-zinc-100"
+                          }`}
+                        >
+                          <span className={`text-xs font-medium ${isPartial(i) ? "text-amber-700" : "text-zinc-700"}`}>
+                            {exerciseName(pe)}
+                          </span>
+                          <span className={`text-[10px] font-mono tabular-nums ${isPartial(i) ? "text-amber-500" : "text-zinc-400"}`}>
+                            {setsDone[i] ?? 0}/{pe.sets}
+                          </span>
+                        </motion.button>
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                </>
+              )}
+              {displayElapsed > 0 && (
+                <button
+                  type="button"
+                  onClick={handleFinishWorkout}
+                  className="mt-2 text-xs font-medium text-zinc-400 underline underline-offset-2 cursor-pointer"
+                >
+                  Finish workout
+                </button>
+              )}
             </div>
           )}
         </div>

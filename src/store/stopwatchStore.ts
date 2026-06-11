@@ -24,7 +24,8 @@ interface StopwatchState {
   currentLabel: string;
   isComplete: boolean;
   exIdx: number;
-  currentSet: number;
+  // Plan-exercise index -> completed sets; survives switching exercises mid-way
+  setsDone: Record<number, number>;
   lapStartBase: number;
   session: PlanSession | null;
 
@@ -38,8 +39,8 @@ interface StopwatchState {
   addExerciseDoneMarker: (marker: { label: string; exerciseId?: string; sets?: number; reps?: number; duration?: number }) => void;
   setCurrentLabel: (label: string) => void;
   setIsComplete: (v: boolean) => void;
-  setExIdx: (fn: (i: number) => number) => void;
-  setCurrentSet: (fn: (s: number) => number) => void;
+  selectExercise: (idx: number) => void;
+  incrementSetDone: (idx: number) => void;
   setSession: (session: PlanSession | null) => void;
   openWithSession: (session: PlanSession) => void;
   clearRequestOpen: () => void;
@@ -53,7 +54,7 @@ export const useStopwatchStore = create<StopwatchState>((set, get) => ({
   currentLabel: "Work",
   isComplete: false,
   exIdx: 0,
-  currentSet: 1,
+  setsDone: {},
   lapStartBase: 0,
   session: null,
   requestOpen: false,
@@ -88,7 +89,7 @@ export const useStopwatchStore = create<StopwatchState>((set, get) => ({
       currentLabel: "Work",
       isComplete: false,
       exIdx: 0,
-      currentSet: 1,
+      setsDone: {},
       lapStartBase: 0,
       session: null,
     }),
@@ -104,8 +105,9 @@ export const useStopwatchStore = create<StopwatchState>((set, get) => ({
 
   setCurrentLabel: (label) => set({ currentLabel: label }),
   setIsComplete: (v) => set({ isComplete: v }),
-  setExIdx: (fn) => set((s) => ({ exIdx: fn(s.exIdx) })),
-  setCurrentSet: (fn) => set((s) => ({ currentSet: fn(s.currentSet) })),
+  selectExercise: (idx) => set({ exIdx: idx }),
+  incrementSetDone: (idx) =>
+    set((s) => ({ setsDone: { ...s.setsDone, [idx]: (s.setsDone[idx] ?? 0) + 1 } })),
   setSession: (session) => set({ session }),
   openWithSession: (session) => set({ session, requestOpen: true }),
   clearRequestOpen: () => set({ requestOpen: false }),

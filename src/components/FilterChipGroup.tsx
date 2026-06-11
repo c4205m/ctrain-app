@@ -3,6 +3,7 @@ import { ChevronDown, Search } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Chip from './Chip'
 import Input from './Input'
+import { useSettingsStore } from '../store/settingsStore'
 
 interface FilterChipGroupProps<T extends string> {
   values: T[]
@@ -19,6 +20,8 @@ export default function FilterChipGroup<T extends string>({
   row = 4,
   searchable = false,
 }: FilterChipGroupProps<T>) {
+  const chipSearchEnabled = useSettingsStore((s) => s.chipSearchEnabled)
+  const showSearch = searchable && chipSearchEnabled
   const [expanded, setExpanded] = useState(false)
   const [query, setQuery] = useState('')
   const [collapsedHeight, setCollapsedHeight] = useState(0)
@@ -26,7 +29,7 @@ export default function FilterChipGroup<T extends string>({
   const [hasHiddenSelected, setHasHiddenSelected] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const searching = query.trim().length > 0
+  const searching = showSearch && query.trim().length > 0
   const visible = searching
     ? values.filter((v) => v.toLowerCase().includes(query.trim().toLowerCase()))
     : values
@@ -58,7 +61,7 @@ export default function FilterChipGroup<T extends string>({
 
   return (
     <div>
-      {searchable && (
+      {showSearch && (
         <Input
           icon={<Search size={14} />}
           inputSize="sm"
