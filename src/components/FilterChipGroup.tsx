@@ -1,4 +1,4 @@
-import { useRef, useLayoutEffect, useState } from 'react'
+import { useRef, useLayoutEffect, useEffect, useState } from 'react'
 import { ChevronDown, Search } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Chip from './Chip'
@@ -28,6 +28,12 @@ export default function FilterChipGroup<T extends string>({
   const [fullHeight, setFullHeight] = useState(0)
   const [hasHiddenSelected, setHasHiddenSelected] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+
+  // Stale query is dropped when the setting is toggled off so re-enabling starts clean
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (!showSearch && query) setQuery('')
+  }, [showSearch, query])
 
   const searching = showSearch && query.trim().length > 0
   const visible = searching

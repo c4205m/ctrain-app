@@ -4,12 +4,13 @@ import tailwindcss from '@tailwindcss/vite'
 import basicSsl from '@vitejs/plugin-basic-ssl'
 import { VitePWA } from 'vite-plugin-pwa'
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   base: '/ctrain-app/',
   plugins: [
     tailwindcss(),
     react(),
-    basicSsl(),
+    // Self-signed https for LAN/phone testing — dev server only
+    ...(command === 'serve' ? [basicSsl()] : []),
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
@@ -46,4 +47,4 @@ export default defineConfig({
       },
     }),
   ],
-})
+}))

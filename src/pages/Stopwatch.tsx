@@ -125,6 +125,8 @@ export default function Stopwatch({ onClose }: StopwatchProps) {
   }
 
   function handleFinishWorkout() {
+    // Record the in-flight lap so its time isn't lost
+    if (getElapsed() > lapStartBase) recordLap(currentLabel);
     planExercises.forEach((pe, i) => {
       const done = setsDone[i] ?? 0;
       if (done >= 1 && done < pe.sets) {
