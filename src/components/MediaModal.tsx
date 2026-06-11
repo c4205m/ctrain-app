@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
@@ -20,6 +21,56 @@ export function isEmbedSnippet(url: string): boolean {
 function extractEmbedSrc(snippet: string): string | null {
   const match = snippet.match(/src=["']([^"']+)["']/);
   return match ? match[1] : null;
+}
+
+function MediaSkeleton() {
+  return (
+    <motion.div
+      initial={false}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
+      className="absolute inset-0 bg-zinc-800 overflow-hidden"
+    >
+      <motion.div
+        animate={{ x: ["-100%", "100%"] }}
+        transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
+        style={{ willChange: "transform" }}
+        className="absolute inset-y-0 w-2/3 bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent"
+      />
+    </motion.div>
+  );
+}
+
+// Own component so `loaded` resets naturally when the modal unmounts or url changes (key)
+function EmbedMedia({ src }: { src: string }) {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <div className="relative">
+      <iframe
+        src={src}
+        onLoad={() => setLoaded(true)}
+        className="w-full aspect-video"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+        allowFullScreen
+      />
+      <AnimatePresence>{!loaded && <MediaSkeleton />}</AnimatePresence>
+    </div>
+  );
+}
+
+function ImageMedia({ url }: { url: string }) {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <div className={`relative ${loaded ? "" : "aspect-video"}`}>
+      <img
+        src={url}
+        alt=""
+        onLoad={() => setLoaded(true)}
+        className="w-full max-h-[70vh] object-contain"
+      />
+      <AnimatePresence>{!loaded && <MediaSkeleton />}</AnimatePresence>
+    </div>
+  );
 }
 
 export default function MediaModal({ open, url, onClose }: MediaModalProps) {
@@ -63,16 +114,11 @@ export default function MediaModal({ open, url, onClose }: MediaModalProps) {
           </div>
 
           {isEmbed && embedSrc ? (
-            <iframe
-              src={embedSrc}
-              className="w-full aspect-video"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-              allowFullScreen
-            />
+            <EmbedMedia key={embedSrc} src={embedSrc} />
           ) : isEmbed ? (
             <div className="px-4 pb-5 text-xs text-zinc-400">Could not parse embed src.</div>
           ) : isImage ? (
-            <img src={url} alt="" className="w-full max-h-[70vh] object-contain" />
+            <ImageMedia key={url} url={url} />
           ) : null}
         </motion.div>
       )}
