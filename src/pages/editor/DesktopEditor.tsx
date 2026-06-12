@@ -18,6 +18,9 @@ import {
   newEmptyDataset,
   parseBackupFile,
   exportDataset,
+  loadDraft,
+  saveDraft,
+  clearDraft,
 } from "./editorData";
 import ExercisesTab from "./tables/ExercisesTab";
 import PlansTab from "./tables/PlansTab";
@@ -37,10 +40,11 @@ const TABS = [
 type TabKey = (typeof TABS)[number]["key"];
 
 export default function DesktopEditor() {
-  const [dataset, setDataset] = useState<EditorDataset | null>(null);
+  const [restored] = useState(loadDraft);
+  const [dataset, setDataset] = useState<EditorDataset | null>(restored?.dataset ?? null);
   const [tab, setTab] = useState<TabKey>("exercises");
   const [fileError, setFileError] = useState<string | null>(null);
-  const dirtyRef = useRef(false);
+  const dirtyRef = useRef(restored?.dirty ?? false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -50,6 +54,10 @@ export default function DesktopEditor() {
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
   }, []);
+
+  useEffect(() => {
+    if (dataset) saveDraft(dataset, dirtyRef.current);
+  }, [dataset]);
 
   function update(fn: (ds: EditorDataset) => EditorDataset) {
     dirtyRef.current = true;
@@ -69,6 +77,7 @@ export default function DesktopEditor() {
     if (!dataset) return;
     exportDataset(dataset);
     dirtyRef.current = false;
+    saveDraft(dataset, false);
   }
 
   return (
@@ -135,6 +144,7 @@ export default function DesktopEditor() {
                 onClick={() => {
                   if (!dirtyRef.current || window.confirm("Discard unsaved changes?")) {
                     dirtyRef.current = false;
+                    clearDraft();
                     setDataset(null);
                   }
                 }}

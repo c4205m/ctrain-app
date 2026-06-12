@@ -21,6 +21,51 @@ export interface EditorDataset {
   weightLogs: WeightEntry[];
 }
 
+const DRAFT_KEY = "ctrain-editor-draft";
+
+export interface EditorDraft {
+  dataset: EditorDataset;
+  dirty: boolean;
+}
+
+export function loadDraft(): EditorDraft | null {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    const { dataset, dirty } = JSON.parse(raw);
+    if (!dataset || !Array.isArray(dataset.exercises) || !Array.isArray(dataset.plans)) return null;
+    return {
+      dataset: {
+        exercises: dataset.exercises,
+        plans: dataset.plans,
+        user: dataset.user ?? [],
+        equipment: dataset.equipment ?? [],
+        movementTypes: dataset.movementTypes ?? [],
+        weightLogs: dataset.weightLogs ?? [],
+      },
+      dirty: Boolean(dirty),
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function saveDraft(dataset: EditorDataset, dirty: boolean): void {
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ dataset, dirty }));
+  } catch {
+    // storage full or unavailable — editing continues without persistence
+  }
+}
+
+export function clearDraft(): void {
+  try {
+    localStorage.removeItem(DRAFT_KEY);
+  } catch {
+    // ignore
+  }
+}
+
 export function toggleItem<T>(arr: T[], val: T): T[] {
   return arr.includes(val) ? arr.filter((v) => v !== val) : [...arr, val];
 }

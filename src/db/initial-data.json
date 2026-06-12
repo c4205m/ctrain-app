@@ -15,44 +15,43 @@
     { "id": "eq-13", "name": "Dip Station" },
     { "id": "eq-14", "name": "Ab Wheel" },
     { "id": "eq-15", "name": "Bosu Ball" },
-    { "id": "eq-16", "name": "Treadmill" },
-    { "id": "eq-17", "name": "Stair Climber" },
-    { "id": "eq-18", "name": "Elliptical" },
-    { "id": "eq-19", "name": "Rowing Machine" },
-    { "id": "eq-20", "name": "Leg Press" },
-    { "id": "eq-21", "name": "Chest Press Machine" },
-    { "id": "eq-22", "name": "Lat Pulldown Machine" },
-    { "id": "eq-23", "name": "Leg Curl Machine" },
-    { "id": "eq-24", "name": "Leg Extension Machine" },
-    { "id": "eq-25", "name": "Shoulder Press Machine" },
-    { "id": "eq-26", "name": "Ab Machine" },
-    { "id": "eq-27", "name": "Back Extension" },
-    { "id": "eq-28", "name": "Lateral Raise Machine" },
-    { "id": "eq-29", "name": "Bicep Curl Machine" },
-    { "id": "eq-30", "name": "Tricep Dip Machine" },
-    { "id": "eq-31", "name": "Cable Machine" },
-    { "id": "eq-32", "name": "Smith Machine" },
-    { "id": "eq-33", "name": "Hack Squat Machine" }
+    { "id": "eq-16", "name": "Machine" }
   ],
   "movementTypes": [
-    { "id": "mt-01", "name": "Push", "description": "Pressing away from your body — push-ups, bench press, dips" },
-    { "id": "mt-02", "name": "Pull", "description": "Pulling toward your body — pull-ups, rows, face pulls" },
-    { "id": "mt-03", "name": "Squat", "description": "Knee-dominant lower body bend — squats, goblet squats" },
-    { "id": "mt-04", "name": "Hinge", "description": "Hip-dominant fold — deadlifts, RDLs, kettlebell swings" },
-    { "id": "mt-05", "name": "Carry", "description": "Walking under load — farmer's carries, suitcase carries" },
-    { "id": "mt-06", "name": "Press", "description": "Pressing overhead — shoulder press, push press" },
-    { "id": "mt-07", "name": "Row", "description": "Horizontal pull toward torso — barbell rows, cable rows" },
-    { "id": "mt-08", "name": "Curl", "description": "Elbow flexion under load — biceps curls, hammer curls" },
-    { "id": "mt-09", "name": "Extension", "description": "Straightening a joint against resistance — triceps extensions, leg extensions" },
-    { "id": "mt-10", "name": "Rotation", "description": "Twisting through the core — Russian twists, woodchoppers" },
-    { "id": "mt-11", "name": "Lunge", "description": "Single-leg stride and return — lunges, split squats, step-ups" },
-    { "id": "mt-12", "name": "Lateral", "description": "Sideways movement — lateral raises, side lunges, side shuffles" },
-    { "id": "mt-13", "name": "Compound", "description": "Multi-joint moves hitting several muscle groups at once" },
-    { "id": "mt-14", "name": "Isolation", "description": "Single-joint moves targeting one muscle group" },
-    { "id": "mt-15", "name": "Cardio", "description": "Sustained elevated heart rate — running, rowing, cycling" },
-    { "id": "mt-16", "name": "Plyometric", "description": "Explosive jumping or throwing — box jumps, burpees, medicine ball throws" },
-    { "id": "mt-17", "name": "Isometric", "description": "Holding a position under tension — planks, wall sits" },
-    { "id": "mt-18", "name": "Dynamic", "description": "Movement through full range with momentum — leg swings, arm circles" }
+    {"id": "mt-01", "name": "Concentric", "description": "Muscle shortens while producing force"},
+    {"id": "mt-02", "name": "Eccentric", "description": "Muscle lengthens while still under tension"},
+    {"id": "mt-03", "name": "Isometric", "description": "Muscle contracts without any change in length or joint movement"},
+    {"id": "mt-04", "name": "Plyometric", "description": "Explosive movements using a rapid stretch and contraction — jumps, bounds"},
+    {"id": "mt-05", "name": "Flexion", "description": "Decreasing the angle between two body parts"},
+    {"id": "mt-06", "name": "Extension", "description": "Increasing the angle between two body parts"},
+    {"id": "mt-07", "name": "Abduction", "description": "Moving a body part away from the midline of the body"},
+    {"id": "mt-08", "name": "Adduction", "description": "Moving a body part toward the midline of the body"},
+    {"id": "mt-09", "name": "Medial rotation", "description": "Rotating a body part inward, toward the center/midline (internal rotation)"},
+    {"id": "mt-10", "name": "Lateral rotation", "description": "Rotating a body part outward, away from the center/midline (external rotation)"},
+    {"id": "mt-11", "name": "Pronation", "description": "Rotational movement that turns a body part downward or inward (forearm: palm faces down; foot: arch rolls inward)"},
+    {"id": "mt-12", "name": "Supination", "description": "Rotational movement that turns a body part upward or outward (forearm: palm faces up; foot: arch rolls outward)"},
+    {"id": "mt-13", "name": "Dorsiflexion", "description": "Bending a joint so the top surface moves toward the shin/upper body (mainly ankle/foot)"},
+    {"id": "mt-14", "name": "Plantarflexion", "description": "Bending a joint so it points away from the body, downward (mainly ankle/foot)"},
+    {"id": "mt-15", "name": "Elevation", "description": "Raising a body part"},
+    {"id": "mt-16", "name": "Depression", "description": "Lowering a body part"},
+    {"id": "mt-17", "name": "Circumduction", "description": "Circular movement combining flexion, extension, abduction, and adduction"},
+    {"id": "mt-18", "name": "Push", "description": "Moving a load away from the body"},
+    {"id": "mt-19", "name": "Pull", "description": "Bringing a load toward the body"},
+    {"id": "mt-20", "name": "Press", "description": "Pushing a load away from a fixed point on the body"},
+    {"id": "mt-21", "name": "Curl", "description": "Flexion movement that brings one body part toward another"},
+    {"id": "mt-22", "name": "Squat", "description": "Lowering and raising the body by bending and straightening the hips and knees"},
+    {"id": "mt-23", "name": "Hinge", "description": "Bending forward at the hips while keeping the legs relatively straight"},
+    {"id": "mt-24", "name": "Lunge", "description": "Performing a movement using one leg at a time"},
+    {"id": "mt-25", "name": "Carry", "description": "Holding a load while moving or standing"},
+    {"id": "mt-26", "name": "Rotation", "description": "Twisting the body, or resisting an external twisting force"},
+    {"id": "mt-27", "name": "Compound", "description": "Involves multiple joints and muscle groups"},
+    {"id": "mt-28", "name": "Isolation", "description": "Involves a single joint and targets one muscle group"},
+    {"id": "mt-29", "name": "Cardio", "description": "Sustained activity that raises heart rate and builds endurance"},
+    {"id": "mt-30", "name": "Static", "description": "Performed without movement, holding a fixed position"},
+    {"id": "mt-31", "name": "Dynamic", "description": "Performed through a continuous range of motion"},
+    {"id": "mt-32", "name": "Unilateral", "description": "Performed on one side of the body at a time"},
+    {"id": "mt-33", "name": "Bilateral", "description": "Performed on both sides of the body simultaneously"},
+    {"id": "mt-34", "name": "Functional", "description": "Mimics movements used in everyday activities"}
   ],
   "exercises": [
     {
@@ -87,7 +86,7 @@
       "name": "Tricep Pushdown",
       "muscles": ["triceps"],
       "difficulty": "Beginner",
-      "tools": ["Cable Machine"],
+      "tools": ["Machine"],
       "movementType": ["Extension", "Isolation"],
       "url": "https://www.youtube.com/watch?v=-zLyUAo1gMw"
     },
@@ -96,7 +95,7 @@
       "name": "Overhead Tricep Extension",
       "muscles": ["triceps"],
       "difficulty": "Beginner",
-      "tools": ["Dumbbells", "Cable Machine"],
+      "tools": ["Dumbbells", "Machine"],
       "movementType": ["Extension", "Isolation"],
       "url": "https://www.youtube.com/watch?v=X-iV-cG8cYs"
     },
@@ -114,7 +113,7 @@
       "name": "Lat Pulldown",
       "muscles": ["upper-back", "biceps"],
       "difficulty": "Beginner",
-      "tools": ["Cable Machine"],
+      "tools": ["Machine"],
       "movementType": ["Pull", "Isolation"],
       "url": "https://www.youtube.com/watch?v=CAwf7n6Luuc"
     },
@@ -123,8 +122,8 @@
       "name": "Seated Cable Row",
       "muscles": ["upper-back", "biceps"],
       "difficulty": "Beginner",
-      "tools": ["Cable Machine"],
-      "movementType": ["Row"],
+      "tools": ["Machine"],
+      "movementType": ["Pull"],
       "url": "https://www.youtube.com/watch?v=vwHG9Jfu4sw"
     },
     {
@@ -132,7 +131,7 @@
       "name": "Face Pull",
       "muscles": ["back-deltoids", "trapezius"],
       "difficulty": "Beginner",
-      "tools": ["Cable Machine", "Resistance Bands"],
+      "tools": ["Machine", "Resistance Bands"],
       "movementType": ["Pull", "Isolation"],
       "url": "https://www.youtube.com/watch?v=0Po47vvj9g4"
     },
@@ -160,7 +159,7 @@
       "muscles": ["upper-back", "biceps", "lower-back"],
       "difficulty": "Intermediate",
       "tools": ["Barbell"],
-      "movementType": ["Row", "Compound"],
+      "movementType": ["Pull", "Compound"],
       "url": "https://www.youtube.com/watch?v=vT2GjY_Umpw"
     },
     {
@@ -186,7 +185,7 @@
       "name": "Leg Press",
       "muscles": ["quadriceps", "gluteal"],
       "difficulty": "Beginner",
-      "tools": ["Leg Press"],
+      "tools": ["Machine"],
       "movementType": ["Press", "Isolation"],
       "url": "https://www.youtube.com/watch?v=p5dCqF7wWUw"
     },
@@ -195,7 +194,7 @@
       "name": "Leg Curl (Lying)",
       "muscles": ["hamstring"],
       "difficulty": "Beginner",
-      "tools": ["Leg Curl Machine"],
+      "tools": ["Machine"],
       "movementType": ["Isolation"],
       "url": "https://www.youtube.com/watch?v=vl5nUdE9mWM"
     },
@@ -267,7 +266,7 @@
       "name": "Cable Chest Fly",
       "muscles": ["chest"],
       "difficulty": "Intermediate",
-      "tools": ["Cable Machine"],
+      "tools": ["Machine"],
       "movementType": ["Isolation"],
       "url": "https://www.youtube.com/watch?v=ETtXO4FW1EU"
     },
@@ -295,7 +294,7 @@
       "muscles": ["upper-back", "biceps"],
       "difficulty": "Beginner",
       "tools": ["Dumbbells"],
-      "movementType": ["Row"],
+      "movementType": ["Pull"],
       "url": "https://www.youtube.com/watch?v=dFzUjzfih7k"
     },
     {
@@ -304,7 +303,7 @@
       "muscles": ["back-deltoids", "trapezius"],
       "difficulty": "Beginner",
       "tools": ["Dumbbells"],
-      "movementType": ["Lateral", "Isolation"],
+      "movementType": ["Abduction", "Isolation"],
       "url": "https://www.youtube.com/watch?v=buuYPLVXsJg"
     },
     {
@@ -331,7 +330,7 @@
       "muscles": ["back-deltoids"],
       "difficulty": "Beginner",
       "tools": ["Dumbbells"],
-      "movementType": ["Lateral", "Isolation"],
+      "movementType": ["Abduction", "Isolation"],
       "url": "https://www.youtube.com/watch?v=PzsMitRdI_8"
     },
     {
@@ -340,7 +339,7 @@
       "muscles": ["front-deltoids"],
       "difficulty": "Beginner",
       "tools": ["Barbell"],
-      "movementType": ["Lateral", "Isolation"],
+      "movementType": ["Abduction", "Isolation"],
       "url": "https://www.youtube.com/watch?v=Ofo2DQdT7DA"
     },
     {
@@ -348,8 +347,8 @@
       "name": "Rear Delt Fly (Cable)",
       "muscles": ["back-deltoids", "trapezius"],
       "difficulty": "Beginner",
-      "tools": ["Cable Machine"],
-      "movementType": ["Lateral", "Isolation"],
+      "tools": ["Machine"],
+      "movementType": ["Abduction", "Isolation"],
       "url": "https://www.youtube.com/watch?v=lq9K3lnHWKk"
     },
     {
@@ -448,7 +447,7 @@
       "muscles": ["upper-back", "biceps", "back-deltoids"],
       "difficulty": "Beginner",
       "tools": ["Pull Up Bar"],
-      "movementType": ["Row", "Pull"],
+      "movementType": ["Pull"],
       "url": "https://www.youtube.com/watch?v=5Vy6mjhXg7s"
     },
     {
