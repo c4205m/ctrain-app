@@ -8,6 +8,7 @@ import {
   exportData,
   importData,
   eraseData,
+  resetApp,
   resetWeightData,
   resetAllLogs,
   isValidBackup,
@@ -59,6 +60,8 @@ export default function Settings() {
   const { filterMode, setFilterMode } = useFilterStore();
 
   const [checkingUpdate, setCheckingUpdate] = useState(false);
+  const [resetAppOpen, setResetAppOpen] = useState(false);
+  const [resetAppRunning, setResetAppRunning] = useState<"defaults" | "empty" | null>(null);
   const [exerciseCount, setExerciseCount] = useState<number | null>(null);
   const [planCount, setPlanCount] = useState<number | null>(null);
   const [emptyPlanCount, setEmptyPlanCount] = useState(0);
@@ -74,15 +77,15 @@ export default function Settings() {
     moves: null,
     stats: null,
   });
-  // Modal renders outside the section element; its clicks must not collapse the section
-  const pendingActionRef = useRef(pendingAction);
-  pendingActionRef.current = pendingAction;
+  // Modals render outside the section element; their clicks must not collapse the section
+  const modalOpenRef = useRef(false);
+  modalOpenRef.current = pendingAction !== null || resetAppOpen;
 
   const toggleSection = (key: SectionKey) => setOpenSection((s) => (s === key ? null : key));
 
   useEffect(() => {
     function handlePointerDown(e: PointerEvent) {
-      if (pendingActionRef.current) return;
+      if (modalOpenRef.current) return;
       setOpenSection((open) => {
         if (!open) return open;
         const el = sectionRefs.current[open];
@@ -158,6 +161,19 @@ export default function Settings() {
       toast.success("Backup saved");
     } catch {
       toast.error("Export failed");
+    }
+  }
+
+  async function runResetApp(seedDefaults: boolean) {
+    setResetAppRunning(seedDefaults ? "defaults" : "empty");
+    try {
+      await resetApp(seedDefaults);
+      localStorage.removeItem("ctrain-settings");
+      window.location.reload();
+    } catch {
+      toast.error("Reset failed");
+      setResetAppRunning(null);
+      setResetAppOpen(false);
     }
   }
 
@@ -433,6 +449,18 @@ export default function Settings() {
                       Erase
                     </Button>
                   </div>
+
+                  <div className="h-px bg-zinc-200" />
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-zinc-800">Reset App</p>
+                      <p className="text-xs text-zinc-400">Erase everything and start over</p>
+                    </div>
+                    <Button variant="danger" size="sm" onClick={() => setResetAppOpen(true)}>
+                      Reset
+                    </Button>
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -667,6 +695,19 @@ export default function Settings() {
         accept=".json"
         className="hidden"
         onChange={handleFileChange}
+      />
+
+      <ConfirmModal
+        isOpen={resetAppOpen}
+        title="Reset app?"
+        description="Deletes ALL data — exercises, plans, logs, tools, moves, weight and profile. Onboarding will run again. This cannot be undone."
+        confirmLabel="Start from Defaults"
+        secondaryLabel="Start Empty"
+        loading={resetAppRunning === "defaults"}
+        secondaryLoading={resetAppRunning === "empty"}
+        onConfirm={() => runResetApp(true)}
+        onSecondary={() => runResetApp(false)}
+        onCancel={() => setResetAppOpen(false)}
       />
 
       <ConfirmModal

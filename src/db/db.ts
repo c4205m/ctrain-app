@@ -210,6 +210,20 @@ export async function resetAllLogs(): Promise<void> {
   });
 }
 
+// Full factory reset. `populate` only runs on DB creation, so the
+// defaults variant has to reseed explicitly after clearing
+export async function resetApp(seedDefaults: boolean): Promise<void> {
+  await db.transaction("rw", [db.exercises, db.plans, db.user, db.equipment, db.movementTypes, db.weightLogs], async () => {
+    await clearAllTables();
+    if (seedDefaults) {
+      await seedExercises(db);
+      await seedEquipment(db);
+      await seedMovementTypes(db);
+      await seedPlans(db);
+    }
+  });
+}
+
 export async function importData(data: BackupShape): Promise<void> {
   await db.transaction("rw", [db.exercises, db.plans, db.user, db.equipment, db.movementTypes, db.weightLogs], async () => {
     await clearAllTables();
