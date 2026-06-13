@@ -5,7 +5,7 @@ import {
   updateWeightLog,
   removeWeightLog,
 } from "../editorData";
-import { TabLayout, EmptyHint, thCls, tdCls } from "./shared";
+import { TabLayout, EmptyHint, DraftNumberInput, thCls, tdCls } from "./shared";
 
 export default function WeightLogsTab({
   dataset,
@@ -51,16 +51,11 @@ export default function WeightLogsTab({
                     />
                   </td>
                   <td className={tdCls}>
-                    <input
-                      type="number"
+                    <DraftNumberInput
                       min={0}
                       step={0.1}
                       value={w.weight}
-                      onChange={(e) =>
-                        update((ds) =>
-                          updateWeightLog(ds, w.id!, w.date, Math.max(0, Number(e.target.value) || 0))
-                        )
-                      }
+                      onCommit={(weight) => update((ds) => updateWeightLog(ds, w.id!, w.date, weight))}
                       className="w-24 bg-transparent border border-transparent hover:border-zinc-200 rounded-lg px-2 py-1 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-orange-400"
                     />
                   </td>

@@ -1,10 +1,21 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Trash2, X, Plus } from "lucide-react";
+import { Trash2, X, Plus, Search } from "lucide-react";
 import type { Plan } from "../../../db/db";
 import Input from "../../../components/Input";
 import { type EditorDataset, upsertPlan, removePlan } from "../editorData";
-import { TabLayout, EmptyHint, thCls, tdCls } from "./shared";
+import { TabLayout, EmptyHint, RowCheckbox, BatchActions, SortableTh, DraftNumberInput, thCls, tdCls } from "./shared";
+import { useRowSelection } from "./useRowSelection";
+import { useTableSort, sortRows } from "./useTableSort";
+
+type PlanSortKey = "name" | "description" | "count" | "duration";
+
+const SORT_GET: Record<PlanSortKey, (p: Plan) => string | number> = {
+  name: (p) => p.name.toLowerCase(),
+  description: (p) => p.description.toLowerCase(),
+  count: (p) => p.exercises.length,
+  duration: (p) => p.duration,
+};
 
 export default function PlansTab({
   dataset,
@@ -14,10 +25,29 @@ export default function PlansTab({
   update: (fn: (ds: EditorDataset) => EditorDataset) => void;
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
 
+  const { sort, toggleSort } = useTableSort<PlanSortKey>();
+
+  const afterSearch = dataset.plans.filter(
+    (p) =>
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      p.description.toLowerCase().includes(search.toLowerCase())
+  );
+  const filtered = sort ? sortRows(afterSearch, sort.dir, SORT_GET[sort.key]) : afterSearch;
   const selected = dataset.plans.find((p) => p.id === selectedId) ?? null;
+  const sel = useRowSelection(
+    filtered.map((p) => p.id!),
+    dataset.plans.map((p) => p.id!)
+  );
   const exerciseName = (id: string) =>
     dataset.exercises.find((ex) => ex.id === id)?.name ?? "(deleted)";
+
+  function handleBatchDelete() {
+    if (!window.confirm(`Delete ${sel.count} plan${sel.count === 1 ? "" : "s"}?`)) return;
+    update((ds) => sel.ids.reduce((acc, id) => removePlan(acc, id), ds));
+    sel.clear();
+  }
 
   function handleAdd() {
     const plan: Plan = {
@@ -47,28 +77,59 @@ export default function PlansTab({
       count={dataset.plans.length}
       onAdd={handleAdd}
       addLabel="Add plan"
+      toolbar={
+        <>
+          <Input
+            icon={<Search size={16} />}
+            inputSize="sm"
+            placeholder="Search…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            wrapperClassName="w-64"
+          />
+          <BatchActions count={sel.count} onDelete={handleBatchDelete} onClear={sel.clear} />
+        </>
+      }
       table={
-        dataset.plans.length === 0 ? (
-          <EmptyHint>No plans yet.</EmptyHint>
+        filtered.length === 0 ? (
+          <EmptyHint>{search ? "No plans match." : "No plans yet."}</EmptyHint>
         ) : (
           <table className="w-full">
             <thead>
               <tr>
-                <th className={thCls}>Name</th>
-                <th className={thCls}>Description</th>
-                <th className={thCls}>Exercises</th>
-                <th className={thCls}>Duration</th>
+                <th className={`${thCls} w-10`}>
+                  <RowCheckbox
+                    checked={sel.allVisibleSelected}
+                    indeterminate={sel.someVisibleSelected}
+                    onClick={sel.toggleAllVisible}
+                  />
+                </th>
+                <SortableTh label="Name" dir={sort?.key === "name" ? sort.dir : undefined} onClick={() => toggleSort("name")} />
+                <SortableTh label="Description" dir={sort?.key === "description" ? sort.dir : undefined} onClick={() => toggleSort("description")} />
+                <SortableTh label="Exercises" dir={sort?.key === "count" ? sort.dir : undefined} onClick={() => toggleSort("count")} />
+                <SortableTh label="Duration" dir={sort?.key === "duration" ? sort.dir : undefined} onClick={() => toggleSort("duration")} />
               </tr>
             </thead>
             <tbody>
-              {dataset.plans.map((p) => (
+              {filtered.map((p) => (
                 <tr
                   key={p.id}
-                  onClick={() => setSelectedId(p.id!)}
+                  onClick={(e) =>
+                    sel.count > 0 ? sel.toggle(p.id!, e.shiftKey) : setSelectedId(p.id!)
+                  }
                   className={`border-t border-zinc-50 cursor-pointer ${
-                    selectedId === p.id ? "bg-orange-50/60" : "hover:bg-zinc-50"
+                    sel.has(p.id!) || selectedId === p.id ? "bg-orange-50/60" : "hover:bg-zinc-50"
                   }`}
                 >
+                  <td className={tdCls}>
+                    <RowCheckbox
+                      checked={sel.has(p.id!)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        sel.toggle(p.id!, e.shiftKey);
+                      }}
+                    />
+                  </td>
                   <td className={`${tdCls} font-medium text-zinc-900`}>{p.name}</td>
                   <td className={`${tdCls} text-zinc-500`}>{p.description}</td>
                   <td className={tdCls}>{p.exercises.length}</td>
@@ -208,11 +269,10 @@ function NumberField({
 }) {
   return (
     <label className="flex items-center gap-1">
-      <input
-        type="number"
+      <DraftNumberInput
         min={1}
         value={value}
-        onChange={(e) => onChange(Math.max(1, Number(e.target.value) || 1))}
+        onCommit={onChange}
         className="w-12 bg-white border border-zinc-200 rounded-lg px-1.5 py-1 text-sm text-zinc-900 text-center focus:outline-none focus:ring-2 focus:ring-orange-400"
       />
       <span className="text-[10px] text-zinc-400 font-medium">{label}</span>

@@ -4,7 +4,7 @@ type Variant = "default";
 
 interface SegmentedControlProps<T extends string> {
   options: T[];
-  selected: T;
+  selected?: T;
   onChange: (selected: T) => void;
   variant?: Variant;
   disabled?: boolean;

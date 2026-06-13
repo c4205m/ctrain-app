@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { Trash2 } from "lucide-react";
+import { Trash2, Search } from "lucide-react";
 import type { MovementTypeEntry } from "../../../db/db";
 import Input from "../../../components/Input";
 import {
@@ -11,7 +11,11 @@ import {
   removeMovementType,
   setMovementTypeDescription,
 } from "../editorData";
-import { TabLayout, EmptyHint, thCls, tdCls } from "./shared";
+import { TabLayout, EmptyHint, RowCheckbox, BatchActions, SortableTh, thCls, tdCls } from "./shared";
+import { useRowSelection } from "./useRowSelection";
+import { useTableSort, sortRows } from "./useTableSort";
+
+type TagSortKey = "name" | "used";
 
 const CONFIG = {
   equipment: {
@@ -41,11 +45,37 @@ export default function TagListTab({
 }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [search, setSearch] = useState("");
   const { title, usageField, hasDescription, add, remove } = CONFIG[kind];
   const items = dataset[kind];
 
-  const usageCount = (itemName: string) =>
-    dataset.exercises.filter((ex) => ex[usageField].includes(itemName)).length;
+  const { sort, toggleSort } = useTableSort<TagSortKey>();
+
+  const usage = new Map<string, number>();
+  for (const ex of dataset.exercises)
+    for (const t of ex[usageField]) usage.set(t, (usage.get(t) ?? 0) + 1);
+  const usageCount = (itemName: string) => usage.get(itemName) ?? 0;
+
+  const afterSearch = items.filter((i) => i.name.toLowerCase().includes(search.toLowerCase()));
+  const filtered = sort
+    ? sortRows(afterSearch, sort.dir, (i) =>
+        sort.key === "name" ? i.name.toLowerCase() : usageCount(i.name)
+      )
+    : afterSearch;
+  const sel = useRowSelection(
+    filtered.map((i) => i.id!),
+    items.map((i) => i.id!)
+  );
+
+  function handleBatchDelete() {
+    const affected = sel.ids
+      .map((id) => items.find((i) => i.id === id))
+      .reduce((n, item) => n + (item ? usageCount(item.name) : 0), 0);
+    const warning = affected > 0 ? ` Tag is removed from ${affected} exercise use(s).` : "";
+    if (!window.confirm(`Delete ${sel.count} item${sel.count === 1 ? "" : "s"}?${warning}`)) return;
+    update((ds) => sel.ids.reduce((acc, id) => remove(acc, id), ds));
+    sel.clear();
+  }
 
   function handleAdd() {
     const trimmed = name.trim();
@@ -64,6 +94,16 @@ export default function TagListTab({
       title={title}
       count={items.length}
       toolbar={
+        <>
+          <Input
+            icon={<Search size={16} />}
+            inputSize="sm"
+            placeholder="Search…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            wrapperClassName="w-48"
+          />
+          <BatchActions count={sel.count} onDelete={handleBatchDelete} onClear={sel.clear} />
         <form
           className="ml-auto flex gap-2"
           onSubmit={(e) => {
@@ -95,25 +135,44 @@ export default function TagListTab({
             Add
           </button>
         </form>
+        </>
       }
       table={
-        items.length === 0 ? (
-          <EmptyHint>Nothing here yet.</EmptyHint>
+        filtered.length === 0 ? (
+          <EmptyHint>{search ? "Nothing matches." : "Nothing here yet."}</EmptyHint>
         ) : (
           <table className="w-full">
             <thead>
               <tr>
-                <th className={thCls}>Name</th>
+                <th className={`${thCls} w-10`}>
+                  <RowCheckbox
+                    checked={sel.allVisibleSelected}
+                    indeterminate={sel.someVisibleSelected}
+                    onClick={sel.toggleAllVisible}
+                  />
+                </th>
+                <SortableTh label="Name" dir={sort?.key === "name" ? sort.dir : undefined} onClick={() => toggleSort("name")} />
                 {hasDescription && <th className={`${thCls} w-1/2`}>Description</th>}
-                <th className={thCls}>Used by</th>
+                <SortableTh label="Used by" dir={sort?.key === "used" ? sort.dir : undefined} onClick={() => toggleSort("used")} />
                 <th className={`${thCls} w-16`} />
               </tr>
             </thead>
             <tbody>
-              {items.map((item) => {
+              {filtered.map((item) => {
                 const used = usageCount(item.name);
                 return (
-                  <tr key={item.id} className="border-t border-zinc-50 hover:bg-zinc-50">
+                  <tr
+                    key={item.id}
+                    className={`border-t border-zinc-50 ${
+                      sel.has(item.id!) ? "bg-orange-50/60" : "hover:bg-zinc-50"
+                    }`}
+                  >
+                    <td className={tdCls}>
+                      <RowCheckbox
+                        checked={sel.has(item.id!)}
+                        onClick={(e) => sel.toggle(item.id!, e.shiftKey)}
+                      />
+                    </td>
                     <td className={`${tdCls} font-medium text-zinc-900`}>{item.name}</td>
                     {hasDescription && (
                       <td className={tdCls}>
