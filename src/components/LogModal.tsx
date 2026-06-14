@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { db, updatePlansForExercise, type Exercise, type Log } from "../db/db";
+import { db, updatePlansForExercise, volumeOf, type Exercise, type Log } from "../db/db";
 import Button from "./Button";
 import { toast } from "sonner";
 import SegmentedControl from "./SegmentedControl";
@@ -16,11 +16,6 @@ interface LogModalProps {
 
 const SET_TYPES: Log["setType"][] = ["rep", "distance", "duration"];
 
-function volumeOf(log: Log): number {
-  if (log.setType !== "rep") return log.sets * log.effortPerSet;
-  const w = log.bodyweight ? Math.max(log.weight, 1) : log.weight;
-  return log.sets * log.effortPerSet * w;
-}
 const SET_TYPE_LABELS: Record<Log["setType"], string> = {
   rep: "Reps",
   distance: "Distance (m)",

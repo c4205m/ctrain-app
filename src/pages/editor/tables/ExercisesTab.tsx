@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ListFilter, Search, Trash2, X } from "lucide-react";
-import type { Exercise } from "../../../db/db";
+import { volumeOf, type Exercise, type Log } from "../../../db/db";
 import { DifficultyLevels, MuscleGroups, type DifficultyLevel, type MuscleGroup } from "../../../db/types";
 import { slugToTitle, MUSCLE_COLOR, DIFFICULTY_BADGE } from "../../../utils/displayUtil";
 import { filterExercises, MUSCLE_ORDER } from "../../../utils/filterUtil";
@@ -330,24 +330,35 @@ export default function ExercisesTab({
               onChange={(e) => patch({ url: e.target.value || undefined })}
             />
 
-            {(selected.latestLog || selected.highestLog) && (
-              <div className="flex flex-col gap-2">
-                <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wide">
-                  Logs
-                </span>
-                <span className="text-sm text-zinc-500">
-                  {selected.latestLog && <>Latest: {selected.latestLog.date.slice(0, 10)}. </>}
-                  {selected.highestLog && <>Best: {selected.highestLog.date.slice(0, 10)}.</>}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => patch({ latestLog: undefined, highestLog: undefined })}
-                  className="self-start text-sm text-zinc-500 font-medium underline underline-offset-2 cursor-pointer hover:text-zinc-700"
-                >
-                  Clear logs
-                </button>
-              </div>
-            )}
+            <div className="flex flex-col gap-2">
+              <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wide">
+                Latest log
+              </span>
+              {selected.latestLog ? (
+                <LogEditor
+                  log={selected.latestLog}
+                  userWeight={dataset.user[0]?.weight ?? 0}
+                  onChange={(latestLog) =>
+                    patch({ latestLog, highestLog: bestLog(selected.highestLog, latestLog) })
+                  }
+                  onClear={() => patch({ latestLog: undefined, highestLog: undefined })}
+                />
+              ) : (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-zinc-400">No log yet.</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const latestLog = newLog();
+                      patch({ latestLog, highestLog: bestLog(selected.highestLog, latestLog) });
+                    }}
+                    className="text-sm text-orange-600 font-semibold cursor-pointer hover:text-orange-700"
+                  >
+                    Set log
+                  </button>
+                </div>
+              )}
+            </div>
 
             <motion.button
               type="button"
@@ -367,6 +378,143 @@ export default function ExercisesTab({
         )
       }
     />
+  );
+}
+
+const SET_TYPES: Log["setType"][] = ["rep", "distance", "duration"];
+const SET_TYPE_LABELS: Record<Log["setType"], string> = {
+  rep: "Reps",
+  distance: "Distance (m)",
+  duration: "Duration (s)",
+};
+
+function newLog(): Log {
+  return {
+    date: new Date().toISOString(),
+    sets: 3,
+    setType: "rep",
+    effortPerSet: 10,
+    weight: 0,
+    bodyweight: false,
+  };
+}
+
+// Best log = whichever has the higher training volume; latest wins ties and seeds an empty best.
+function bestLog(best: Log | undefined, latest: Log): Log {
+  return !best || volumeOf(latest) >= volumeOf(best) ? latest : best;
+}
+
+// Keep the duration invariant LogModal enforces: duration logs mirror effort,
+// other types keep their optional set-duration; bodyweight pins weight to the user.
+function normalizeLog(log: Log, userWeight: number): Log {
+  const weight = log.bodyweight ? userWeight : log.weight;
+  if (log.setType === "duration") return { ...log, weight, duration: log.effortPerSet };
+  return { ...log, weight };
+}
+
+function LogEditor({
+  log,
+  userWeight,
+  onChange,
+  onClear,
+}: {
+  log: Log;
+  userWeight: number;
+  onChange: (log: Log) => void;
+  onClear: () => void;
+}) {
+  function emit(changes: Partial<Log>) {
+    onChange(normalizeLog({ ...log, ...changes }, userWeight));
+  }
+
+  return (
+    <div className="flex flex-col gap-3 bg-zinc-50 rounded-xl p-3">
+      <SegmentedControl
+        options={SET_TYPES}
+        selected={log.setType}
+        onChange={(setType) => emit({ setType })}
+      />
+
+      <div className="flex gap-3">
+        <Input
+          label="Sets"
+          type="number"
+          inputMode="numeric"
+          min={1}
+          max={20}
+          value={log.sets}
+          onChange={(e) => emit({ sets: Number(e.target.value) })}
+          wrapperClassName="flex-1"
+        />
+        <Input
+          label={SET_TYPE_LABELS[log.setType]}
+          type="number"
+          inputMode={log.setType === "rep" ? "numeric" : "decimal"}
+          min={0}
+          step={log.setType === "rep" ? 1 : 0.01}
+          value={log.effortPerSet}
+          onChange={(e) => {
+            const raw = parseFloat(e.target.value) || 0;
+            emit({ effortPerSet: log.setType === "rep" ? Math.round(raw) : Math.round(raw * 100) / 100 });
+          }}
+          wrapperClassName="flex-1"
+        />
+      </div>
+
+      {log.setType !== "duration" && (
+        <Input
+          label="Set duration (s)"
+          hint="(optional)"
+          type="number"
+          inputMode="decimal"
+          min={0}
+          step={0.01}
+          placeholder="e.g. 45"
+          value={log.duration ?? ""}
+          onChange={(e) =>
+            emit({ duration: e.target.value === "" ? undefined : Math.round(parseFloat(e.target.value) * 100) / 100 })
+          }
+        />
+      )}
+
+      <Input
+        label="Weight (kg)"
+        type="number"
+        inputMode="decimal"
+        min={0}
+        value={log.bodyweight ? userWeight : log.weight}
+        disabled={log.bodyweight}
+        onChange={(e) => emit({ weight: Number(e.target.value) })}
+      />
+
+      <label className="flex items-center gap-2 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={log.bodyweight}
+          onChange={(e) => emit({ bodyweight: e.target.checked })}
+          className="w-4 h-4 accent-orange-500"
+        />
+        <span className="text-sm text-zinc-600">Bodyweight</span>
+      </label>
+
+      <Input
+        label="Date"
+        type="date"
+        value={log.date.slice(0, 10)}
+        onChange={(e) => {
+          if (!e.target.value) return;
+          emit({ date: new Date(e.target.value).toISOString() });
+        }}
+      />
+
+      <button
+        type="button"
+        onClick={onClear}
+        className="self-start text-sm text-zinc-500 font-medium underline underline-offset-2 cursor-pointer hover:text-zinc-700"
+      >
+        Clear log
+      </button>
+    </div>
   );
 }
 

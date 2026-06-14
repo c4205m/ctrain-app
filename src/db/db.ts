@@ -13,6 +13,13 @@ export interface Log {
   bodyweight: boolean
 }
 
+// Training volume of a log, used to decide the best (highest) log.
+export function volumeOf(log: Log): number {
+  if (log.setType !== "rep") return log.sets * log.effortPerSet
+  const w = log.bodyweight ? Math.max(log.weight, 1) : log.weight
+  return log.sets * log.effortPerSet * w
+}
+
 export interface Exercise {
   id?: string
   name: string
