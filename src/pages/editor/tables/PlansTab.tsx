@@ -1,14 +1,18 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { Trash2, X, Plus, Search } from "lucide-react";
+import { motion, Reorder, useDragControls } from "framer-motion";
+import { Trash2, X, Plus, Search, GripVertical } from "lucide-react";
 import type { Plan } from "../../../db/db";
 import Input from "../../../components/Input";
+import ExercisePicker from "../../../components/ExercisePicker";
 import { type EditorDataset, upsertPlan, removePlan } from "../editorData";
 import { TabLayout, EmptyHint, RowCheckbox, BatchActions, SortableTh, DraftNumberInput, thCls, tdCls } from "./shared";
 import { useRowSelection } from "./useRowSelection";
 import { useTableSort, sortRows } from "./useTableSort";
 
 type PlanSortKey = "name" | "description" | "count" | "duration";
+
+// Mirror the app's PlanCard: effort label follows the exercise's latest log type.
+const EFFORT_LABEL: Record<string, string> = { rep: "reps", distance: "mtrs", duration: "secs" };
 
 const SORT_GET: Record<PlanSortKey, (p: Plan) => string | number> = {
   name: (p) => p.name.toLowerCase(),
@@ -26,6 +30,7 @@ export default function PlansTab({
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const { sort, toggleSort } = useTableSort<PlanSortKey>();
 
@@ -66,10 +71,6 @@ export default function PlansTab({
     if (!selected) return;
     update((ds) => upsertPlan(ds, { ...selected, ...changes }));
   }
-
-  const unusedExercises = selected
-    ? dataset.exercises.filter((ex) => !selected.exercises.some((e) => e.exerciseId === ex.id))
-    : [];
 
   return (
     <TabLayout
@@ -170,72 +171,49 @@ export default function PlansTab({
                 Exercises · ~{selected.duration} min
               </span>
 
-              {selected.exercises.map((e, i) => (
-                <div
-                  key={e.exerciseId}
-                  className="flex items-center gap-2 bg-zinc-50 rounded-xl px-3 py-2"
-                >
-                  <span className="flex-1 min-w-0 truncate text-sm font-medium text-zinc-800">
-                    {exerciseName(e.exerciseId)}
-                  </span>
-                  <NumberField
-                    value={e.sets}
-                    label="sets"
-                    onChange={(sets) =>
+              <Reorder.Group
+                axis="y"
+                values={selected.exercises}
+                onReorder={(exercises) => patch({ exercises })}
+                className="flex flex-col gap-2"
+              >
+                {selected.exercises.map((e) => (
+                  <ExerciseRow
+                    key={e.exerciseId}
+                    pe={e}
+                    name={exerciseName(e.exerciseId)}
+                    repsLabel={
+                      EFFORT_LABEL[
+                        dataset.exercises.find((ex) => ex.id === e.exerciseId)?.latestLog?.setType ?? "rep"
+                      ] ?? "reps"
+                    }
+                    onUpdate={(changes) =>
                       patch({
-                        exercises: selected.exercises.map((x, j) => (j === i ? { ...x, sets } : x)),
+                        exercises: selected.exercises.map((x) =>
+                          x.exerciseId === e.exerciseId ? { ...x, ...changes } : x
+                        ),
+                      })
+                    }
+                    onRemove={() =>
+                      patch({
+                        exercises: selected.exercises.filter((x) => x.exerciseId !== e.exerciseId),
                       })
                     }
                   />
-                  <NumberField
-                    value={e.reps}
-                    label="reps"
-                    onChange={(reps) =>
-                      patch({
-                        exercises: selected.exercises.map((x, j) => (j === i ? { ...x, reps } : x)),
-                      })
-                    }
-                  />
-                  <button
-                    type="button"
-                    onClick={() =>
-                      patch({ exercises: selected.exercises.filter((_, j) => j !== i) })
-                    }
-                    className="text-zinc-400 hover:text-red-500 cursor-pointer"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-              ))}
+                ))}
+              </Reorder.Group>
 
-              {unusedExercises.length > 0 && (
-                <div className="relative">
-                  <Plus
-                    size={14}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none"
-                  />
-                  <select
-                    value=""
-                    onChange={(e) => {
-                      if (!e.target.value) return;
-                      patch({
-                        exercises: [
-                          ...selected.exercises,
-                          { exerciseId: e.target.value, sets: 3, reps: 10 },
-                        ],
-                      });
-                    }}
-                    className="w-full appearance-none bg-zinc-50 border border-zinc-200 rounded-xl pl-8 pr-3 py-2.5 text-sm text-zinc-600 font-medium focus:outline-none focus:ring-2 focus:ring-orange-400 cursor-pointer"
-                  >
-                    <option value="">Add exercise…</option>
-                    {unusedExercises.map((ex) => (
-                      <option key={ex.id} value={ex.id}>
-                        {ex.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
+              <button
+                type="button"
+                onClick={() => setPickerOpen(true)}
+                className="relative w-full bg-zinc-50 border border-zinc-200 rounded-xl pl-8 pr-3 py-2.5 text-sm text-zinc-600 font-medium text-left focus:outline-none focus:ring-2 focus:ring-orange-400 cursor-pointer hover:bg-zinc-100"
+              >
+                <Plus
+                  size={14}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none"
+                />
+                Add exercise…
+              </button>
             </div>
 
             <motion.button
@@ -251,10 +229,66 @@ export default function PlansTab({
               <Trash2 size={16} />
               Delete plan
             </motion.button>
+
+            <ExercisePicker
+              isOpen={pickerOpen}
+              exercises={dataset.exercises}
+              alreadySelected={selected.exercises.map((e) => e.exerciseId)}
+              onConfirm={(ids) =>
+                patch({
+                  exercises: [
+                    ...selected.exercises,
+                    ...ids.map((id) => ({ exerciseId: id, sets: 3, reps: 10 })),
+                  ],
+                })
+              }
+              onClose={() => setPickerOpen(false)}
+            />
           </div>
         )
       }
     />
+  );
+}
+
+function ExerciseRow({
+  pe,
+  name,
+  repsLabel,
+  onUpdate,
+  onRemove,
+}: {
+  pe: Plan["exercises"][number];
+  name: string;
+  repsLabel: string;
+  onUpdate: (changes: Partial<Plan["exercises"][number]>) => void;
+  onRemove: () => void;
+}) {
+  const dragControls = useDragControls();
+  return (
+    <Reorder.Item
+      value={pe}
+      dragListener={false}
+      dragControls={dragControls}
+      className="flex items-center gap-2 bg-zinc-50 rounded-xl px-2 py-2 select-none"
+    >
+      <div
+        onPointerDown={(e) => dragControls.start(e)}
+        className="text-zinc-300 hover:text-zinc-400 cursor-grab active:cursor-grabbing shrink-0 touch-none"
+      >
+        <GripVertical size={16} />
+      </div>
+      <span className="flex-1 min-w-0 truncate text-sm font-medium text-zinc-800">{name}</span>
+      <NumberField value={pe.sets} label="sets" onChange={(sets) => onUpdate({ sets })} />
+      <NumberField value={pe.reps} label={repsLabel} onChange={(reps) => onUpdate({ reps })} />
+      <button
+        type="button"
+        onClick={onRemove}
+        className="text-zinc-400 hover:text-red-500 cursor-pointer"
+      >
+        <X size={16} />
+      </button>
+    </Reorder.Item>
   );
 }
 
