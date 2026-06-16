@@ -8,7 +8,8 @@ import { toast } from "sonner";
 import Chip from "./Chip";
 import { slugToTitle, capitalize, MUSCLE_COLOR } from "../utils/displayUtil";
 import { estimateDuration } from "../utils/timeUtil";
-import { buildPlanShareUrl, shareUrl, SHARE_MAX_EXERCISES } from "../utils/share";
+import ShareSheet from "./ShareSheet";
+import { buildPlanShareCode, SHARE_MAX_EXERCISES } from "../utils/share";
 
 const DELETE_THRESHOLD = -100;
 
@@ -105,6 +106,7 @@ export default function PlanCard({
   onExitEdit,
 }: PlanCardProps) {
   const [draft, setDraft] = useState<PlanExercise[]>(plan.exercises);
+  const [shareOpen, setShareOpen] = useState(false);
 
   useEffect(() => { setDraft(plan.exercises) }, [plan.exercises, isEditing]);
 
@@ -153,17 +155,12 @@ export default function PlanCard({
     deletePlan(plan.id!).catch(() => toast.error("Failed to delete plan"));
   }
 
-  async function handleShare() {
+  function handleShare() {
     if (plan.exercises.length > SHARE_MAX_EXERCISES) {
-      toast.error(`Plans over ${SHARE_MAX_EXERCISES} exercises can't be shared as a link`);
+      toast.error(`Plans over ${SHARE_MAX_EXERCISES} exercises can't be shared`);
       return;
     }
-    try {
-      const result = await shareUrl(buildPlanShareUrl(plan, exercises), plan.name);
-      if (result === "copied") toast.success("Link copied");
-    } catch {
-      // user dismissed the share sheet
-    }
+    setShareOpen(true);
   }
 
   return (
@@ -318,6 +315,13 @@ export default function PlanCard({
           </div>
         </div>
       )}
+
+      <ShareSheet
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        code={buildPlanShareCode(plan, exercises)}
+        title={plan.name}
+      />
     </div>
   );
 }

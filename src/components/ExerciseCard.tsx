@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { ChevronDown, Video, Dumbbell, Pencil, Share2 } from "lucide-react";
-import { toast } from "sonner";
 import Button from "./Button";
 import type { Exercise } from "../db/db";
 import Chip from "./Chip";
 import MediaModal, { isImageUrl, isEmbedSnippet } from "./MediaModal";
+import ShareSheet from "./ShareSheet";
 import { formatDateDM } from "../utils/timeUtil";
 import { MUSCLE_COLOR, DIFFICULTY_BADGE, slugToTitle } from "../utils/displayUtil";
-import { buildExerciseShareUrl, shareUrl } from "../utils/share";
+import { buildExerciseShareCode } from "../utils/share";
 
 interface ExerciseCardProps {
   exercise: Exercise;
@@ -37,6 +37,7 @@ export default function ExerciseCard({
   const badge = DIFFICULTY_BADGE[exercise.difficulty] ?? DIFFICULTY_BADGE.Beginner;
   const hasLogs = !!exercise.highestLog;
   const [videoOpen, setVideoOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const mediaLabel = exercise.url
     ? isEmbedSnippet(exercise.url) ? "Embed"
     : isImageUrl(exercise.url) ? "Image"
@@ -177,14 +178,7 @@ export default function ExerciseCard({
               aria-label="Share"
               iconOnly
               size="sm"
-              onClick={async () => {
-                try {
-                  const result = await shareUrl(buildExerciseShareUrl(exercise), exercise.name);
-                  if (result === "copied") toast.success("Link copied");
-                } catch {
-                  // user dismissed the share sheet
-                }
-              }}
+              onClick={() => setShareOpen(true)}
               className="self-center"
             >
               <Share2 size={14} />
@@ -197,6 +191,13 @@ export default function ExerciseCard({
     {exercise.url && (
       <MediaModal open={videoOpen} url={exercise.url} onClose={() => setVideoOpen(false)} />
     )}
+
+    <ShareSheet
+      open={shareOpen}
+      onClose={() => setShareOpen(false)}
+      code={buildExerciseShareCode(exercise)}
+      title={exercise.name}
+    />
   </>
   );
 }

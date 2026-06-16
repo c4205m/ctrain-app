@@ -4,6 +4,12 @@ import type { MuscleGroup, DifficultyLevel } from "../db/types";
 
 export const SHARE_MAX_EXERCISES = 30;
 
+// A single QR holding the whole code gets too dense to scan off a phone screen,
+// so codes are split into low-density frames shown as an animated sequence.
+// ~180 data bytes/frame keeps each QR around version 7-8 (chunky, easy to scan).
+const CHUNK_PREFIX = "CT1";
+const CHUNK_DATA_BYTES = 180;
+
 // Compact wire format: short keys keep URLs small. Exercises carry no ids or
 // logs — receivers regenerate ids and start fresh.
 interface SharedExercise {
@@ -38,31 +44,58 @@ function stripExercise(ex: Exercise): SharedExercise {
   };
 }
 
-function buildUrl(payload: SharePayload): string {
-  const data = compressToEncodedURIComponent(JSON.stringify(payload));
-  return `${location.origin}${import.meta.env.BASE_URL}#share=${data}`;
+// Codes are the raw lz-string payload — no URL, so receivers paste/scan them
+// straight into the app and never bounce through a browser.
+function encodePayload(payload: SharePayload): string {
+  return compressToEncodedURIComponent(JSON.stringify(payload));
 }
 
-export function buildExerciseShareUrl(exercise: Exercise): string {
-  return buildUrl({ v: 1, x: [stripExercise(exercise)] });
+// Split a code into animated QR frames. lz-string's URL-safe alphabet never
+// contains ".", so "." is a safe field separator: CT1.<id>.<idx>.<total>.<data>
+export function chunkShareCode(code: string): string[] {
+  const id = Math.random().toString(36).slice(2, 6);
+  const parts: string[] = [];
+  for (let i = 0; i < code.length; i += CHUNK_DATA_BYTES) {
+    parts.push(code.slice(i, i + CHUNK_DATA_BYTES));
+  }
+  const total = parts.length;
+  return parts.map((data, idx) => `${CHUNK_PREFIX}.${id}.${idx}.${total}.${data}`);
 }
 
-export function buildPlanShareUrl(plan: Plan, exercises: Exercise[]): string {
+export interface ShareChunk {
+  id: string;
+  idx: number;
+  total: number;
+  data: string;
+}
+
+export function parseChunk(raw: string): ShareChunk | null {
+  const m = raw.match(/^CT1\.([a-z0-9]+)\.(\d+)\.(\d+)\.(.*)$/s);
+  if (!m) return null;
+  const idx = Number(m[2]);
+  const total = Number(m[3]);
+  if (total < 1 || idx < 0 || idx >= total) return null;
+  return { id: m[1], idx, total, data: m[4] };
+}
+
+export function buildExerciseShareCode(exercise: Exercise): string {
+  return encodePayload({ v: 1, x: [stripExercise(exercise)] });
+}
+
+export function buildPlanShareCode(plan: Plan, exercises: Exercise[]): string {
   const refs = plan.exercises
     .map((e) => ({ ...e, ex: exercises.find((x) => x.id === e.exerciseId) }))
     .filter((e) => e.ex != null);
-  return buildUrl({
+  return encodePayload({
     v: 1,
     x: refs.map((e) => stripExercise(e.ex!)),
     p: { n: plan.name, dsc: plan.description, e: refs.map((e, i) => [i, e.sets, e.reps]) },
   });
 }
 
-export function parseShareHash(hash: string): SharePayload | null {
-  const match = hash.match(/#share=(.+)/);
-  if (!match) return null;
+export function parseShareCode(code: string): SharePayload | null {
   try {
-    const json = decompressFromEncodedURIComponent(match[1]);
+    const json = decompressFromEncodedURIComponent(code.trim());
     if (!json) return null;
     const data = JSON.parse(json);
     if (data?.v !== 1 || !Array.isArray(data.x) || data.x.length === 0) return null;
@@ -134,13 +167,4 @@ export async function importShared(payload: SharePayload): Promise<void> {
       });
     }
   });
-}
-
-export async function shareUrl(url: string, title: string): Promise<"shared" | "copied"> {
-  if (navigator.share) {
-    await navigator.share({ title, url });
-    return "shared";
-  }
-  await navigator.clipboard.writeText(url);
-  return "copied";
 }

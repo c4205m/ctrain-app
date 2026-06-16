@@ -32,6 +32,7 @@ import Button from "../components/Button";
 import Toggle from "../components/Toggle";
 import Input from "../components/Input";
 import ConfirmModal from "../components/ConfirmModal";
+import ImportSheet from "../components/ImportSheet";
 import EditableTagRow from "../components/EditableTagRow";
 import { checkForUpdates } from "../utils/pwaUpdate";
 
@@ -56,6 +57,7 @@ export default function Settings() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [receiveOpen, setReceiveOpen] = useState(false);
   const { visibleStats, setStatVisible, chipSearchEnabled, setChipSearchEnabled } = useSettingsStore();
   const { filterMode, setFilterMode } = useFilterStore();
 
@@ -79,7 +81,7 @@ export default function Settings() {
   });
   // Modals render outside the section element; their clicks must not collapse the section
   const modalOpenRef = useRef(false);
-  modalOpenRef.current = pendingAction !== null || resetAppOpen;
+  modalOpenRef.current = pendingAction !== null || resetAppOpen || receiveOpen;
 
   const toggleSection = (key: SectionKey) => setOpenSection((s) => (s === key ? null : key));
 
@@ -470,6 +472,23 @@ export default function Settings() {
       </div>
 
       <div className="bg-zinc-100 rounded-2xl p-4 shadow-sm mt-3">
+        <h2 className="font-heading font-semibold text-base text-zinc-900 mb-1">Sharing</h2>
+        <p className="text-xs text-zinc-400 mb-4">
+          Add an exercise or plan someone shared with you. Scan the animated QR on their
+          phone, or paste a copied code.
+        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-zinc-800">Receive shared</p>
+            <p className="text-xs text-zinc-400">Scan a QR or paste a code</p>
+          </div>
+          <Button variant="secondary" size="sm" onClick={() => setReceiveOpen(true)}>
+            Receive
+          </Button>
+        </div>
+      </div>
+
+      <div className="bg-zinc-100 rounded-2xl p-4 shadow-sm mt-3">
         <h2 className="font-heading font-semibold text-base text-zinc-900 mb-4">Filters</h2>
         <label className="flex items-center justify-between cursor-pointer">
           <div>
@@ -709,6 +728,8 @@ export default function Settings() {
         onSecondary={() => runResetApp(false)}
         onCancel={() => setResetAppOpen(false)}
       />
+
+      <ImportSheet open={receiveOpen} onClose={() => setReceiveOpen(false)} />
 
       <ConfirmModal
         isOpen={pendingAction !== null}
