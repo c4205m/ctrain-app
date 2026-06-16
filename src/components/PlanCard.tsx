@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ChevronDown, Plus, GripVertical, Trash2, Pencil, Trash, Save } from "lucide-react";
+import { ChevronDown, Plus, GripVertical, Trash2, Pencil, Trash, Save, Share2 } from "lucide-react";
 import { Reorder, useDragControls, motion, useMotionValue, useTransform, animate } from "framer-motion";
 import Button from "../components/Button";
 import NumericStepperGroup from "../components/NumericStepper";
@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import Chip from "./Chip";
 import { slugToTitle, capitalize, MUSCLE_COLOR } from "../utils/displayUtil";
 import { estimateDuration } from "../utils/timeUtil";
+import { buildPlanShareUrl, shareUrl, SHARE_MAX_EXERCISES } from "../utils/share";
 
 const DELETE_THRESHOLD = -100;
 
@@ -152,6 +153,19 @@ export default function PlanCard({
     deletePlan(plan.id!).catch(() => toast.error("Failed to delete plan"));
   }
 
+  async function handleShare() {
+    if (plan.exercises.length > SHARE_MAX_EXERCISES) {
+      toast.error(`Plans over ${SHARE_MAX_EXERCISES} exercises can't be shared as a link`);
+      return;
+    }
+    try {
+      const result = await shareUrl(buildPlanShareUrl(plan, exercises), plan.name);
+      if (result === "copied") toast.success("Link copied");
+    } catch {
+      // user dismissed the share sheet
+    }
+  }
+
   return (
     <div className="bg-white rounded-2xl border border-zinc-100 overflow-hidden shrink-0 w-full h-full">
       {/* Collapsed header */}
@@ -230,6 +244,14 @@ export default function PlanCard({
               className="flex-1 text-xs py-2"
             >
               <Pencil size={14} /> Edit
+            </Button>
+            <Button
+              variant="info"
+              aria-label="Share"
+              onClick={handleShare}
+              className="flex-1 text-xs py-2"
+            >
+              <Share2 size={14} /> Share
             </Button>
             <Button
               variant="danger"
