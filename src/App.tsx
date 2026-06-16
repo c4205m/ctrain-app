@@ -12,6 +12,7 @@ import FloatTimerButton from "./components/FloatTimerButton";
 import MobileGate from "./components/MobileGate";
 import ProfileSetupModal from "./components/ProfileSetupModal";
 import DesktopEditor from "./pages/editor/DesktopEditor";
+import ShareReceiveModal from "./components/ShareReceiveModal";
 import { useLocation } from "react-router-dom";
 
 export default function App() {
@@ -27,6 +28,7 @@ export default function App() {
       <>
         <MobileGate />
         <ProfileSetupModal />
+        <ShareReceiveModal />
       </>
     )}
     <div className="h-full md:hidden">

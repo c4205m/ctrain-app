@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { ChevronDown, Video, Dumbbell, Pencil } from "lucide-react";
+import { ChevronDown, Video, Dumbbell, Pencil, Share2 } from "lucide-react";
+import { toast } from "sonner";
 import Button from "./Button";
 import type { Exercise } from "../db/db";
 import Chip from "./Chip";
 import MediaModal, { isImageUrl, isEmbedSnippet } from "./MediaModal";
 import { formatDateDM } from "../utils/timeUtil";
 import { MUSCLE_COLOR, DIFFICULTY_BADGE, slugToTitle } from "../utils/displayUtil";
+import { buildExerciseShareUrl, shareUrl } from "../utils/share";
 
 interface ExerciseCardProps {
   exercise: Exercise;
@@ -170,6 +172,23 @@ export default function ExerciseCard({
                 <Pencil size={14} /> Edit
               </Button>
             )}
+            <Button
+              variant="ghost"
+              aria-label="Share"
+              iconOnly
+              size="sm"
+              onClick={async () => {
+                try {
+                  const result = await shareUrl(buildExerciseShareUrl(exercise), exercise.name);
+                  if (result === "copied") toast.success("Link copied");
+                } catch {
+                  // user dismissed the share sheet
+                }
+              }}
+              className="self-center"
+            >
+              <Share2 size={14} />
+            </Button>
           </div>
         </div>
       )}
