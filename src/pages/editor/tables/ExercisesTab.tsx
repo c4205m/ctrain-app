@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ListFilter, Search, Trash2, X } from "lucide-react";
+import { toast } from "sonner";
+import { ListFilter, Search, Share2, Trash2, X } from "lucide-react";
 import { volumeOf, type Exercise, type Log } from "../../../db/db";
+import ShareSheet from "../../../components/ShareSheet";
+import { buildExerciseShareCode, buildExercisesShareCode } from "../../../utils/share";
 import { DifficultyLevels, MuscleGroups, type DifficultyLevel, type MuscleGroup } from "../../../db/types";
 import { slugToTitle, MUSCLE_COLOR, DIFFICULTY_BADGE } from "../../../utils/displayUtil";
 import { filterExercises, MUSCLE_ORDER } from "../../../utils/filterUtil";
@@ -40,6 +43,13 @@ export default function ExercisesTab({
 }) {
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [share, setShare] = useState<{ code: string; title: string }>({ code: "", title: "" });
+  const [shareOpen, setShareOpen] = useState(false);
+
+  function openShare(s: { code: string; title: string }) {
+    setShare(s);
+    setShareOpen(true);
+  }
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [fMuscles, setFMuscles] = useState<MuscleGroup[]>([]);
   const [fDifficulty, setFDifficulty] = useState<DifficultyLevel[]>([]);
@@ -79,6 +89,18 @@ export default function ExercisesTab({
     sel.clear();
   }
 
+  function handleBatchShare() {
+    const exs = dataset.exercises.filter((ex) => sel.ids.includes(ex.id!));
+    try {
+      openShare({
+        code: buildExercisesShareCode(exs),
+        title: `${exs.length} exercise${exs.length === 1 ? "" : "s"}`,
+      });
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  }
+
   function handleAdd() {
     const ex: Exercise = {
       id: crypto.randomUUID(),
@@ -98,6 +120,7 @@ export default function ExercisesTab({
   }
 
   return (
+    <>
     <TabLayout
       title="Exercises"
       count={dataset.exercises.length}
@@ -128,7 +151,12 @@ export default function ExercisesTab({
             Filters
             {activeFilterCount > 0 && ` · ${activeFilterCount}`}
           </motion.button>
-          <BatchActions count={sel.count} onDelete={handleBatchDelete} onClear={sel.clear} />
+          <BatchActions
+            count={sel.count}
+            onDelete={handleBatchDelete}
+            onShare={handleBatchShare}
+            onClear={sel.clear}
+          />
         </>
       }
       filters={
@@ -207,6 +235,7 @@ export default function ExercisesTab({
                 <SortableTh label="Muscles" dir={sort?.key === "muscles" ? sort.dir : undefined} onClick={() => toggleSort("muscles")} />
                 <SortableTh label="Tools" dir={sort?.key === "tools" ? sort.dir : undefined} onClick={() => toggleSort("tools")} />
                 <SortableTh label="Movement" dir={sort?.key === "movement" ? sort.dir : undefined} onClick={() => toggleSort("movement")} />
+                <th className={`${thCls} w-10`} />
               </tr>
             </thead>
             <tbody>
@@ -252,6 +281,19 @@ export default function ExercisesTab({
                   </td>
                   <td className={`${tdCls} text-zinc-500`}>{ex.tools.join(", ")}</td>
                   <td className={`${tdCls} text-zinc-500`}>{ex.movementType.join(", ")}</td>
+                  <td className={tdCls}>
+                    <button
+                      type="button"
+                      aria-label="Share"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openShare({ code: buildExerciseShareCode(ex), title: ex.name });
+                      }}
+                      className="text-zinc-300 hover:text-orange-500 cursor-pointer"
+                    >
+                      <Share2 size={15} />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -378,6 +420,13 @@ export default function ExercisesTab({
         )
       }
     />
+    <ShareSheet
+      open={shareOpen}
+      onClose={() => setShareOpen(false)}
+      code={share.code}
+      title={share.title}
+    />
+    </>
   );
 }
 

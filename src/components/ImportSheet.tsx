@@ -38,7 +38,11 @@ export default function ImportSheet({ open, onClose }: ImportSheetProps) {
     setLoading(true);
     try {
       await importShared(payload);
-      toast.success(payload.p ? `Plan "${payload.p.n}" added` : `"${payload.x[0].n}" added`);
+      const plans = payload.p == null ? [] : Array.isArray(payload.p) ? payload.p : [payload.p];
+      if (plans.length === 1) toast.success(`Plan "${plans[0].n}" added`);
+      else if (plans.length > 1) toast.success(`${plans.length} plans added`);
+      else if (payload.x.length === 1) toast.success(`"${payload.x[0].n}" added`);
+      else toast.success(`${payload.x.length} exercises added`);
       return true;
     } catch {
       toast.error("Import failed");
