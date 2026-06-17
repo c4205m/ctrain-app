@@ -12,7 +12,7 @@ const CHUNK_DATA_BYTES = 180;
 
 // Compact wire format: short keys keep URLs small. Exercises carry no ids or
 // logs — receivers regenerate ids and start fresh.
-interface SharedExercise {
+export interface SharedExercise {
   n: string; // name
   m: MuscleGroup[]; // muscles
   d: DifficultyLevel; // difficulty
@@ -27,10 +27,22 @@ interface SharedPlan {
   e: Array<[number, number, number]>; // [exercise index, sets, reps]
 }
 
-interface SharePayload {
+export interface SharePayload {
   v: 1;
   x: SharedExercise[];
   p?: SharedPlan | SharedPlan[]; // single (legacy) or batch — normalized on parse
+}
+
+// How to handle an incoming exercise whose name already exists in the DB.
+export type ExResolution = "keep" | "copy" | "overwrite";
+
+// First free name: base, else "base 2", "base 3"… (case-insensitive). `taken`
+// holds lowercased names already in use; caller adds the result back.
+function nextName(base: string, taken: Set<string>): string {
+  if (!taken.has(base.toLowerCase())) return base;
+  let n = 2;
+  while (taken.has(`${base} ${n}`.toLowerCase())) n++;
+  return `${base} ${n}`;
 }
 
 function stripExercise(ex: Exercise): SharedExercise {
@@ -134,14 +146,47 @@ export function parseShareCode(code: string): SharePayload | null {
   }
 }
 
-// Merge into DB: existing exercises matched by name are reused, missing
-// tools/moves are created, plan duration recalculated.
-export async function importShared(payload: SharePayload): Promise<void> {
-  await db.transaction("rw", [db.exercises, db.plans, db.equipment, db.movementTypes], async () => {
-    const [existing, equipment, movementTypes] = await Promise.all([
+function planList(payload: SharePayload): SharedPlan[] {
+  return payload.p == null ? [] : Array.isArray(payload.p) ? payload.p : [payload.p];
+}
+
+export interface ImportCollision {
+  index: number; // into payload.x
+  name: string;
+  existing: Exercise; // your matching row, for diffing against the incoming copy
+}
+
+// Incoming exercises whose name already exists in the DB. Drives the import
+// resolution UI.
+export async function analyzeImport(payload: SharePayload): Promise<ImportCollision[]> {
+  const existing = await db.exercises.toArray();
+  const byName = new Map(existing.map((e) => [e.name.toLowerCase(), e]));
+  const out: ImportCollision[] = [];
+  payload.x.forEach((e, i) => {
+    const match = byName.get(e.n.toLowerCase());
+    if (match) out.push({ index: i, name: e.n, existing: match });
+  });
+  return out;
+}
+
+export interface ImportOutcome {
+  renamedPlans: { from: string; to: string }[];
+}
+
+// Merge into DB. Missing tools/moves are created. Name-clashing exercises follow
+// `resolutions` (default "keep"): keep reuses your row, "copy" adds a suffixed
+// duplicate, "overwrite" replaces your row's data. Plans with a clashing name
+// are auto-suffixed. Plan durations recalculated.
+export async function importShared(
+  payload: SharePayload,
+  resolutions: Record<number, ExResolution> = {},
+): Promise<ImportOutcome> {
+  return db.transaction("rw", [db.exercises, db.plans, db.equipment, db.movementTypes], async () => {
+    const [existing, equipment, movementTypes, existingPlans] = await Promise.all([
       db.exercises.toArray(),
       db.equipment.toArray(),
       db.movementTypes.toArray(),
+      db.plans.toArray(),
     ]);
 
     const toolNames = new Set(equipment.map((e) => e.name));
@@ -162,37 +207,63 @@ export async function importShared(payload: SharePayload): Promise<void> {
     }
 
     const byName = new Map(existing.map((ex) => [ex.name.toLowerCase(), ex.id!]));
+    const takenNames = new Set(existing.map((ex) => ex.name.toLowerCase()));
     const ids: string[] = [];
-    for (const shared of payload.x) {
+    for (let i = 0; i < payload.x.length; i++) {
+      const shared = payload.x[i];
       const found = byName.get(shared.n.toLowerCase());
-      if (found) {
+      const choice = found ? resolutions[i] ?? "keep" : null;
+
+      if (found && choice === "keep") {
         ids.push(found);
         continue;
       }
+      if (found && choice === "overwrite") {
+        // url removed when absent — Dexie deletes keys set to undefined.
+        await db.exercises.update(found, {
+          muscles: shared.m,
+          difficulty: shared.d,
+          tools: shared.t,
+          movementType: shared.mt,
+          url: shared.u ?? undefined,
+        });
+        ids.push(found);
+        continue;
+      }
+
+      // New exercise, or "copy" of a clashing name (suffix to stay unique).
+      const name = found ? nextName(shared.n, takenNames) : shared.n;
       const id = crypto.randomUUID();
       await db.exercises.add({
         id,
-        name: shared.n,
+        name,
         muscles: shared.m,
         difficulty: shared.d,
         tools: shared.t,
         movementType: shared.mt,
         ...(shared.u ? { url: shared.u } : {}),
       });
-      byName.set(shared.n.toLowerCase(), id);
+      takenNames.add(name.toLowerCase());
+      byName.set(name.toLowerCase(), id);
       ids.push(id);
     }
 
-    const plans = payload.p == null ? [] : Array.isArray(payload.p) ? payload.p : [payload.p];
-    for (const p of plans) {
+    const planNames = new Set(existingPlans.map((p) => p.name.toLowerCase()));
+    const renamedPlans: { from: string; to: string }[] = [];
+    for (const p of planList(payload)) {
+      const name = nextName(p.n, planNames);
+      if (name !== p.n) renamedPlans.push({ from: p.n, to: name });
+      planNames.add(name.toLowerCase());
       await db.plans.add({
         id: crypto.randomUUID(),
-        name: p.n,
+        name,
         description: p.dsc,
         createdAt: new Date().toISOString(),
         exercises: p.e.map(([i, sets, reps]) => ({ exerciseId: ids[i], sets, reps })),
         duration: calcPlanDuration(p.e.map(([, sets, reps]) => ({ sets, reps }))),
       });
     }
+
+    return { renamedPlans };
   });
 }
