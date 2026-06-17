@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { ListFilter, Search, Share2, Trash2, X } from "lucide-react";
 import { volumeOf, type Exercise, type Log } from "../../../db/db";
 import ShareSheet from "../../../components/ShareSheet";
+import ExerciseCardCompact from "../../../components/ExerciseCardCompact";
 import { buildExerciseShareCode, buildExercisesShareCode } from "../../../utils/share";
 import { DifficultyLevels, MuscleGroups, type DifficultyLevel, type MuscleGroup } from "../../../db/types";
 import { slugToTitle, MUSCLE_COLOR, DIFFICULTY_BADGE } from "../../../utils/displayUtil";
@@ -20,6 +21,13 @@ import { useTableSort, sortRows } from "./useTableSort";
 
 const DIFFICULTIES = Object.values(DifficultyLevels);
 const ALL_MUSCLES = Object.values(MuscleGroups).map((m) => m.slug);
+
+// name → description for movement types that have one, for chip hover tooltips.
+function moveDescriptions(dataset: EditorDataset): Record<string, string> {
+  return Object.fromEntries(
+    dataset.movementTypes.filter((m) => m.description?.trim()).map((m) => [m.name, m.description!]),
+  );
+}
 
 type ExSortKey = "name" | "difficulty" | "muscles" | "tools" | "movement";
 
@@ -323,6 +331,11 @@ export default function ExercisesTab({
               </button>
             </div>
 
+            <ExerciseCardCompact
+              exercise={selected}
+              hideCollapsedChips={selected.muscles.length === 0}
+            />
+
             <Input
               label="Name"
               value={selected.name}
@@ -363,6 +376,7 @@ export default function ExercisesTab({
               all={dataset.movementTypes.map((m) => m.name)}
               active={selected.movementType}
               onToggle={(name) => patch({ movementType: toggleItem(selected.movementType, name) })}
+              descriptions={moveDescriptions(dataset)}
             />
 
             <Input
@@ -678,6 +692,7 @@ function BatchPanel({
         countWith={(name) => countWith("movementType", name)}
         total={exercises.length}
         onToggle={(name) => toggleTag("movementType", name)}
+        descriptions={moveDescriptions(dataset)}
       />
 
       <motion.button
@@ -703,6 +718,7 @@ function TriChipGroup({
   total,
   onToggle,
   chipFor,
+  descriptions,
 }: {
   label: string;
   names: string[];
@@ -710,6 +726,7 @@ function TriChipGroup({
   total: number;
   onToggle: (name: string) => void;
   chipFor?: (name: string, state: TriState) => React.ReactNode;
+  descriptions?: Record<string, string>;
 }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -719,12 +736,15 @@ function TriChipGroup({
         {names.map((name) => {
           const count = countWith(name);
           const state: TriState = count === 0 ? "none" : count === total ? "all" : "some";
+          const desc = descriptions?.[name];
           return (
             <button
               key={name}
               type="button"
               onClick={() => onToggle(name)}
-              title={state === "some" ? `On ${count} of ${total} — click to add to all` : undefined}
+              title={
+                desc ?? (state === "some" ? `On ${count} of ${total} — click to add to all` : undefined)
+              }
               className={`cursor-pointer ${state === "some" ? "opacity-50" : ""}`}
             >
               {chipFor ? (
@@ -745,11 +765,13 @@ function TagToggleGroup({
   all,
   active,
   onToggle,
+  descriptions,
 }: {
   label: string;
   all: string[];
   active: string[];
   onToggle: (name: string) => void;
+  descriptions?: Record<string, string>;
 }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -757,7 +779,13 @@ function TagToggleGroup({
       <div className="flex flex-wrap gap-1.5">
         {all.length === 0 && <span className="text-sm text-zinc-400">None defined.</span>}
         {all.map((name) => (
-          <button key={name} type="button" onClick={() => onToggle(name)} className="cursor-pointer">
+          <button
+            key={name}
+            type="button"
+            onClick={() => onToggle(name)}
+            title={descriptions?.[name]}
+            className="cursor-pointer"
+          >
             <Chip variant={active.includes(name) ? "primary" : "secondary"}>{name}</Chip>
           </button>
         ))}
