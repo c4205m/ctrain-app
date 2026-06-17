@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { motion, Reorder, useDragControls } from "framer-motion";
-import { Trash2, X, Plus, Search, GripVertical } from "lucide-react";
+import { toast } from "sonner";
+import { Trash2, X, Plus, Search, GripVertical, Share2 } from "lucide-react";
 import type { Plan } from "../../../db/db";
 import Input from "../../../components/Input";
 import ExercisePicker from "../../../components/ExercisePicker";
+import ShareSheet from "../../../components/ShareSheet";
+import { buildPlanShareCode, buildPlansShareCode } from "../../../utils/share";
 import { type EditorDataset, upsertPlan, removePlan } from "../editorData";
 import { TabLayout, EmptyHint, RowCheckbox, BatchActions, SortableTh, DraftNumberInput, thCls, tdCls } from "./shared";
 import { useRowSelection } from "./useRowSelection";
@@ -31,6 +34,13 @@ export default function PlansTab({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [share, setShare] = useState<{ code: string; title: string }>({ code: "", title: "" });
+  const [shareOpen, setShareOpen] = useState(false);
+
+  function openShare(s: { code: string; title: string }) {
+    setShare(s);
+    setShareOpen(true);
+  }
 
   const { sort, toggleSort } = useTableSort<PlanSortKey>();
 
@@ -54,6 +64,18 @@ export default function PlansTab({
     sel.clear();
   }
 
+  function handleBatchShare() {
+    const plans = dataset.plans.filter((p) => sel.ids.includes(p.id!));
+    try {
+      openShare({
+        code: buildPlansShareCode(plans, dataset.exercises),
+        title: `${plans.length} plan${plans.length === 1 ? "" : "s"}`,
+      });
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  }
+
   function handleAdd() {
     const plan: Plan = {
       id: crypto.randomUUID(),
@@ -73,6 +95,7 @@ export default function PlansTab({
   }
 
   return (
+    <>
     <TabLayout
       title="Plans"
       count={dataset.plans.length}
@@ -88,7 +111,12 @@ export default function PlansTab({
             onChange={(e) => setSearch(e.target.value)}
             wrapperClassName="w-64"
           />
-          <BatchActions count={sel.count} onDelete={handleBatchDelete} onClear={sel.clear} />
+          <BatchActions
+            count={sel.count}
+            onDelete={handleBatchDelete}
+            onShare={handleBatchShare}
+            onClear={sel.clear}
+          />
         </>
       }
       table={
@@ -109,6 +137,7 @@ export default function PlansTab({
                 <SortableTh label="Description" dir={sort?.key === "description" ? sort.dir : undefined} onClick={() => toggleSort("description")} />
                 <SortableTh label="Exercises" dir={sort?.key === "count" ? sort.dir : undefined} onClick={() => toggleSort("count")} />
                 <SortableTh label="Duration" dir={sort?.key === "duration" ? sort.dir : undefined} onClick={() => toggleSort("duration")} />
+                <th className={`${thCls} w-10`} />
               </tr>
             </thead>
             <tbody>
@@ -135,6 +164,26 @@ export default function PlansTab({
                   <td className={`${tdCls} text-zinc-500`}>{p.description}</td>
                   <td className={tdCls}>{p.exercises.length}</td>
                   <td className={`${tdCls} text-zinc-500`}>~{p.duration} min</td>
+                  <td className={tdCls}>
+                    <button
+                      type="button"
+                      aria-label="Share"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        try {
+                          openShare({
+                            code: buildPlanShareCode(p, dataset.exercises),
+                            title: p.name,
+                          });
+                        } catch (err) {
+                          toast.error((err as Error).message);
+                        }
+                      }}
+                      className="text-zinc-300 hover:text-orange-500 cursor-pointer"
+                    >
+                      <Share2 size={15} />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -248,6 +297,13 @@ export default function PlansTab({
         )
       }
     />
+    <ShareSheet
+      open={shareOpen}
+      onClose={() => setShareOpen(false)}
+      code={share.code}
+      title={share.title}
+    />
+    </>
   );
 }
 

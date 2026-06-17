@@ -1,6 +1,6 @@
 import { useRef, useState, type MouseEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowDown, ArrowUp, ArrowUpDown, Plus, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Plus, Share2, Trash2, X } from "lucide-react";
 import type { SortDir } from "./useTableSort";
 
 const PANEL_WIDTH_KEY = "ctrain-editor-panel-width";
@@ -145,10 +145,12 @@ export function BatchActions({
   count,
   onDelete,
   onClear,
+  onShare,
 }: {
   count: number;
   onDelete: () => void;
   onClear: () => void;
+  onShare?: () => void;
 }) {
   if (count === 0) return null;
   return (
@@ -158,6 +160,18 @@ export function BatchActions({
       className="flex items-center gap-2"
     >
       <span className="text-sm font-medium text-zinc-500 whitespace-nowrap">{count} selected</span>
+      {onShare && (
+        <motion.button
+          type="button"
+          onClick={onShare}
+          whileTap={{ scale: 0.96 }}
+          style={{ willChange: "transform" }}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-orange-50 text-orange-600 text-sm font-semibold cursor-pointer"
+        >
+          <Share2 size={14} />
+          Share
+        </motion.button>
+      )}
       <motion.button
         type="button"
         onClick={onDelete}

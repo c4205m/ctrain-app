@@ -30,7 +30,7 @@ interface SharedPlan {
 interface SharePayload {
   v: 1;
   x: SharedExercise[];
-  p?: SharedPlan;
+  p?: SharedPlan | SharedPlan[]; // single (legacy) or batch — normalized on parse
 }
 
 function stripExercise(ex: Exercise): SharedExercise {
@@ -79,18 +79,45 @@ export function parseChunk(raw: string): ShareChunk | null {
 }
 
 export function buildExerciseShareCode(exercise: Exercise): string {
-  return encodePayload({ v: 1, x: [stripExercise(exercise)] });
+  return buildExercisesShareCode([exercise]);
+}
+
+export function buildExercisesShareCode(exercises: Exercise[]): string {
+  if (exercises.length > SHARE_MAX_EXERCISES) {
+    throw new Error(`Can't share more than ${SHARE_MAX_EXERCISES} exercises`);
+  }
+  return encodePayload({ v: 1, x: exercises.map(stripExercise) });
 }
 
 export function buildPlanShareCode(plan: Plan, exercises: Exercise[]): string {
-  const refs = plan.exercises
-    .map((e) => ({ ...e, ex: exercises.find((x) => x.id === e.exerciseId) }))
-    .filter((e) => e.ex != null);
-  return encodePayload({
-    v: 1,
-    x: refs.map((e) => stripExercise(e.ex!)),
-    p: { n: plan.name, dsc: plan.description, e: refs.map((e, i) => [i, e.sets, e.reps]) },
+  return buildPlansShareCode([plan], exercises);
+}
+
+// Bundle plans plus their exercises into one payload. Exercises are deduped by
+// id into a shared x array; each plan's e tuples index into it.
+export function buildPlansShareCode(plans: Plan[], exercises: Exercise[]): string {
+  const exById = new Map(exercises.map((ex) => [ex.id, ex]));
+  const sharedX: SharedExercise[] = [];
+  const indexById = new Map<string, number>();
+
+  const sharedPlans: SharedPlan[] = plans.map((plan) => {
+    const refs = plan.exercises.filter((e) => exById.has(e.exerciseId));
+    const e: Array<[number, number, number]> = refs.map((ref) => {
+      let idx = indexById.get(ref.exerciseId);
+      if (idx == null) {
+        idx = sharedX.length;
+        indexById.set(ref.exerciseId, idx);
+        sharedX.push(stripExercise(exById.get(ref.exerciseId)!));
+      }
+      return [idx, ref.sets, ref.reps];
+    });
+    return { n: plan.name, dsc: plan.description, e };
   });
+
+  if (sharedX.length > SHARE_MAX_EXERCISES) {
+    throw new Error(`These plans reference more than ${SHARE_MAX_EXERCISES} exercises`);
+  }
+  return encodePayload({ v: 1, x: sharedX, p: sharedPlans });
 }
 
 export function parseShareCode(code: string): SharePayload | null {
@@ -156,14 +183,15 @@ export async function importShared(payload: SharePayload): Promise<void> {
       ids.push(id);
     }
 
-    if (payload.p) {
+    const plans = payload.p == null ? [] : Array.isArray(payload.p) ? payload.p : [payload.p];
+    for (const p of plans) {
       await db.plans.add({
         id: crypto.randomUUID(),
-        name: payload.p.n,
-        description: payload.p.dsc,
+        name: p.n,
+        description: p.dsc,
         createdAt: new Date().toISOString(),
-        exercises: payload.p.e.map(([i, sets, reps]) => ({ exerciseId: ids[i], sets, reps })),
-        duration: calcPlanDuration(payload.p.e.map(([, sets, reps]) => ({ sets, reps }))),
+        exercises: p.e.map(([i, sets, reps]) => ({ exerciseId: ids[i], sets, reps })),
+        duration: calcPlanDuration(p.e.map(([, sets, reps]) => ({ sets, reps }))),
       });
     }
   });
