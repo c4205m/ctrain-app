@@ -5,7 +5,7 @@ import { db, updatePlansForExercise, volumeOf, type Exercise, type Log } from ".
 import Button from "./Button";
 import { toast } from "sonner";
 import SegmentedControl from "./SegmentedControl";
-import Input from "./Input";
+import NumberInput from "./NumberInput";
 
 interface LogModalProps {
   exercise: Exercise | null;
@@ -27,7 +27,7 @@ export default function LogModal({ exercise, isOpen, onClose, prefill }: LogModa
   const [sets, setSets] = useState(3);
   const [effort, setEffort] = useState(10);
   const [setType, setSetType] = useState<Log["setType"]>("rep");
-  const [setDuration, setSetDuration] = useState<number | "">("");
+  const [setDuration, setSetDuration] = useState<number | undefined>(undefined);
   const [weight, setWeight] = useState(0);
   const [bodyweight, setBodyweight] = useState(false);
   const [userWeight, setUserWeight] = useState(0);
@@ -48,7 +48,7 @@ export default function LogModal({ exercise, isOpen, onClose, prefill }: LogModa
     setSetDuration(
       resolvedSetType !== "duration" && prefill?.duration != null
         ? prefill.duration
-        : log?.setType !== "duration" && log?.duration ? log.duration : ""
+        : log?.setType !== "duration" && log?.duration ? log.duration : undefined
     );
     setWeight(log?.weight ?? 0);
     setBodyweight(log?.bodyweight ?? false);
@@ -63,7 +63,7 @@ export default function LogModal({ exercise, isOpen, onClose, prefill }: LogModa
       effortPerSet: effort,
       ...(setType === "duration"
         ? { duration: effort }
-        : setDuration !== ""
+        : setDuration != null
           ? { duration: setDuration }
           : {}),
       weight: bodyweight ? userWeight : weight,
@@ -114,28 +114,25 @@ export default function LogModal({ exercise, isOpen, onClose, prefill }: LogModa
               )}
 
               <div className="flex gap-3">
-                <Input
+                <NumberInput
                   label="Sets"
-                  type="number"
                   inputMode="numeric"
+                  decimals={0}
                   value={sets}
                   min={1}
                   max={20}
-                  onChange={(e) => setSets(Number(e.target.value))}
+                  onChange={(v) => setSets(v ?? 0)}
                   wrapperClassName="flex-1"
                 />
-                <Input
+                <NumberInput
                   label={SET_TYPE_LABELS[setType]}
-                  type="number"
                   inputMode={setType === "rep" ? "numeric" : "decimal"}
+                  decimals={setType === "rep" ? 0 : 2}
                   value={effort}
                   min={0.01}
                   max={setType === "duration" ? 3600 : setType === "distance" ? 99999 : 100}
                   step={setType === "rep" ? 1 : 0.01}
-                  onChange={(e) => {
-                    const raw = parseFloat(e.target.value);
-                    setEffort(setType === "rep" ? Math.round(raw) : Math.round(raw * 100) / 100);
-                  }}
+                  onChange={(v) => setEffort(v ?? 0)}
                   wrapperClassName="flex-1"
                 />
               </div>
@@ -151,23 +148,18 @@ export default function LogModal({ exercise, isOpen, onClose, prefill }: LogModa
                   exit={{ opacity: 0, height: 0 }}
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 >
-                  <Input
+                  <NumberInput
                     label="Set Duration (s)"
                     hint="— optional"
-                    type="number"
                     inputMode="decimal"
+                    decimals={2}
                     value={setDuration}
+                    emptyValue={undefined}
                     min={0.01}
                     max={3600}
                     step={0.01}
                     placeholder="e.g. 45"
-                    onChange={(e) =>
-                      setSetDuration(
-                        e.target.value === ""
-                          ? ""
-                          : Math.round(parseFloat(e.target.value) * 100) / 100,
-                      )
-                    }
+                    onChange={setSetDuration}
                     wrapperClassName="pt-4"
                   />
                 </motion.div>
@@ -176,13 +168,14 @@ export default function LogModal({ exercise, isOpen, onClose, prefill }: LogModa
 
             <div className="space-y-4 mt-4">
 
-              <Input
+              <NumberInput
                 label="Weight (kg)"
-                type="number"
                 inputMode="decimal"
+                decimals={2}
+                min={0}
                 value={bodyweight ? userWeight : weight}
                 disabled={bodyweight}
-                onChange={(e) => setWeight(Number(e.target.value))}
+                onChange={(v) => setWeight(v ?? 0)}
               />
 
               <label className="flex items-center gap-2 cursor-pointer">

@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { db, addWeightEntry, updateWeightEntry, deleteWeightEntry } from "../db/db";
 import { formatDateDM } from "../utils/timeUtil";
 import Button from "./Button";
-import Input from "./Input";
+import NumberInput from "./NumberInput";
 
 interface WeightLogModalProps {
   isOpen: boolean;
@@ -16,7 +16,7 @@ interface WeightLogModalProps {
 }
 
 export default function WeightLogModal({ isOpen, onClose, currentWeight }: WeightLogModalProps) {
-  const [weight, setWeight] = useState<number | "">(currentWeight ?? "");
+  const [weight, setWeight] = useState<number | undefined>(currentWeight);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<number | "">("");
 
@@ -28,13 +28,13 @@ export default function WeightLogModal({ isOpen, onClose, currentWeight }: Weigh
 
   useEffect(() => {
     if (isOpen) {
-      setWeight(currentWeight ?? "");
+      setWeight(currentWeight);
       setEditingId(null);
     }
   }, [isOpen, currentWeight]);
 
   function handleSave() {
-    if (weight === "" || weight <= 0) return;
+    if (weight == null || weight <= 0) return;
     onClose();
     addWeightEntry(weight)
       .then(() => toast.success("Weight logged"))
@@ -86,17 +86,16 @@ export default function WeightLogModal({ isOpen, onClose, currentWeight }: Weigh
             <h2 className="text-lg font-bold text-zinc-900 mb-0.5">Log Weight</h2>
             <p className="text-xs text-zinc-400 mb-6">Track your bodyweight over time</p>
 
-            <Input
+            <NumberInput
               label="Weight (kg)"
-              type="number"
               inputMode="decimal"
+              decimals={2}
               value={weight}
+              emptyValue={undefined}
               min={0.01}
               max={500}
               step={0.1}
-              onChange={(e) =>
-                setWeight(e.target.value === "" ? "" : Math.round(parseFloat(e.target.value) * 100) / 100)
-              }
+              onChange={setWeight}
             />
 
             <div className="flex gap-2 mt-6">

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { ListFilter, Search, Share2, Trash2, X } from "lucide-react";
-import { volumeOf, type Exercise, type Log } from "../../../db/db";
+import { type Exercise, type Log } from "../../../db/db";
 import ShareSheet from "../../../components/ShareSheet";
 import ExerciseCardCompact from "../../../components/ExerciseCardCompact";
 import { buildExerciseShareCode, buildExercisesShareCode } from "../../../utils/share";
@@ -14,6 +14,8 @@ import Chip from "../../../components/Chip";
 import FilterChipGroup from "../../../components/FilterChipGroup";
 import SegmentedControl from "../../../components/SegmentedControl";
 import MusclePicker from "../../../components/MusclePicker";
+import LogEditor from "../../../components/LogEditor";
+import { bestLog } from "../../../utils/logUtil";
 import { type EditorDataset, upsertExercise, removeExercise, toggleItem } from "../editorData";
 import { TabLayout, EmptyHint, RowCheckbox, BatchActions, SortableTh, thCls, tdCls } from "./shared";
 import { useRowSelection } from "./useRowSelection";
@@ -444,13 +446,6 @@ export default function ExercisesTab({
   );
 }
 
-const SET_TYPES: Log["setType"][] = ["rep", "distance", "duration"];
-const SET_TYPE_LABELS: Record<Log["setType"], string> = {
-  rep: "Reps",
-  distance: "Distance (m)",
-  duration: "Duration (s)",
-};
-
 function newLog(): Log {
   return {
     date: new Date().toISOString(),
@@ -460,125 +455,6 @@ function newLog(): Log {
     weight: 0,
     bodyweight: false,
   };
-}
-
-// Best log = whichever has the higher training volume; latest wins ties and seeds an empty best.
-function bestLog(best: Log | undefined, latest: Log): Log {
-  return !best || volumeOf(latest) >= volumeOf(best) ? latest : best;
-}
-
-// Keep the duration invariant LogModal enforces: duration logs mirror effort,
-// other types keep their optional set-duration; bodyweight pins weight to the user.
-function normalizeLog(log: Log, userWeight: number): Log {
-  const weight = log.bodyweight ? userWeight : log.weight;
-  if (log.setType === "duration") return { ...log, weight, duration: log.effortPerSet };
-  return { ...log, weight };
-}
-
-function LogEditor({
-  log,
-  userWeight,
-  onChange,
-  onClear,
-}: {
-  log: Log;
-  userWeight: number;
-  onChange: (log: Log) => void;
-  onClear: () => void;
-}) {
-  function emit(changes: Partial<Log>) {
-    onChange(normalizeLog({ ...log, ...changes }, userWeight));
-  }
-
-  return (
-    <div className="flex flex-col gap-3 bg-zinc-50 rounded-xl p-3">
-      <SegmentedControl
-        options={SET_TYPES}
-        selected={log.setType}
-        onChange={(setType) => emit({ setType })}
-      />
-
-      <div className="flex gap-3">
-        <Input
-          label="Sets"
-          type="number"
-          inputMode="numeric"
-          min={1}
-          max={20}
-          value={log.sets}
-          onChange={(e) => emit({ sets: Number(e.target.value) })}
-          wrapperClassName="flex-1"
-        />
-        <Input
-          label={SET_TYPE_LABELS[log.setType]}
-          type="number"
-          inputMode={log.setType === "rep" ? "numeric" : "decimal"}
-          min={0}
-          step={log.setType === "rep" ? 1 : 0.01}
-          value={log.effortPerSet}
-          onChange={(e) => {
-            const raw = parseFloat(e.target.value) || 0;
-            emit({ effortPerSet: log.setType === "rep" ? Math.round(raw) : Math.round(raw * 100) / 100 });
-          }}
-          wrapperClassName="flex-1"
-        />
-      </div>
-
-      {log.setType !== "duration" && (
-        <Input
-          label="Set duration (s)"
-          hint="(optional)"
-          type="number"
-          inputMode="decimal"
-          min={0}
-          step={0.01}
-          placeholder="e.g. 45"
-          value={log.duration ?? ""}
-          onChange={(e) =>
-            emit({ duration: e.target.value === "" ? undefined : Math.round(parseFloat(e.target.value) * 100) / 100 })
-          }
-        />
-      )}
-
-      <Input
-        label="Weight (kg)"
-        type="number"
-        inputMode="decimal"
-        min={0}
-        value={log.bodyweight ? userWeight : log.weight}
-        disabled={log.bodyweight}
-        onChange={(e) => emit({ weight: Number(e.target.value) })}
-      />
-
-      <label className="flex items-center gap-2 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={log.bodyweight}
-          onChange={(e) => emit({ bodyweight: e.target.checked })}
-          className="w-4 h-4 accent-orange-500"
-        />
-        <span className="text-sm text-zinc-600">Bodyweight</span>
-      </label>
-
-      <Input
-        label="Date"
-        type="date"
-        value={log.date.slice(0, 10)}
-        onChange={(e) => {
-          if (!e.target.value) return;
-          emit({ date: new Date(e.target.value).toISOString() });
-        }}
-      />
-
-      <button
-        type="button"
-        onClick={onClear}
-        className="self-start text-sm text-zinc-500 font-medium underline underline-offset-2 cursor-pointer hover:text-zinc-700"
-      >
-        Clear log
-      </button>
-    </div>
-  );
 }
 
 function FilterLabel({ children }: { children: React.ReactNode }) {
