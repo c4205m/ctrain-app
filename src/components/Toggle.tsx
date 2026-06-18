@@ -15,7 +15,7 @@ export default function Toggle({ checked, onChange, disabled = false }: TogglePr
       onClick={() => onChange(!checked)}
       animate={{ backgroundColor: checked ? "#f97316" : "#d4d4d8" }}
       transition={{ duration: 0.2 }}
-      className="relative w-10 h-6 rounded-full cursor-pointer disabled:opacity-40 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400"
+      className="relative shrink-0 w-10 h-6 rounded-full cursor-pointer disabled:opacity-40 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400"
     >
       <motion.span
         animate={{ x: checked ? 16 : 0 }}
