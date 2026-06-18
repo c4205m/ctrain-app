@@ -254,9 +254,12 @@ export function DraftNumberInput({
         setFocused(true);
       }}
       onChange={(e) => {
-        setText(e.target.value);
-        const n = Number(e.target.value);
-        if (e.target.value !== "" && Number.isFinite(n)) onCommit(Math.max(min, n));
+        // Drop leading zeros so "014" can never happen, but keep "0", "0.5".
+        const raw = e.target.value.replace(/^0+(?=\d)/, "");
+        setText(raw);
+        if (raw === "") return;
+        const n = Number(raw);
+        if (Number.isFinite(n)) onCommit(Math.max(min, n));
       }}
       onBlur={() => setFocused(false)}
       className={className}
