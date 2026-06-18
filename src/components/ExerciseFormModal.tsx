@@ -2,13 +2,15 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { db, deleteExercise, resetLogs, type Exercise } from "../db/db";
+import { db, deleteExercise, resetLogs, updatePlansForExercise, type Exercise, type Log } from "../db/db";
 import { DifficultyLevels, type MuscleGroup, type DifficultyLevel } from "../db/types";
 import Input from "./Input";
 import SegmentedControl from "./SegmentedControl";
 import MusclePicker from "./MusclePicker";
 import FilterChipGroup from "./FilterChipGroup";
 import Button from "./Button";
+import LogEditor from "./LogEditor";
+import { bestLog } from "../utils/logUtil";
 
 interface ExerciseFormModalProps {
   target: Exercise | "new" | null;
@@ -42,17 +44,23 @@ const DIFFICULTIES = Object.values(DifficultyLevels);
 
 export default function ExerciseFormModal({ target, isOpen, onClose }: ExerciseFormModalProps) {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [log, setLog] = useState<Log | undefined>(undefined);
+  const [userWeight, setUserWeight] = useState(0);
   const [allTools, setAllTools] = useState<string[]>([]);
   const [allMovement, setAllMovement] = useState<string[]>([]);
 
   useEffect(() => {
     db.equipment.toArray().then((rows) => setAllTools(rows.map((r) => r.name)));
     db.movementTypes.toArray().then((rows) => setAllMovement(rows.map((r) => r.name)));
+    db.user.toArray().then((users) => {
+      if (users[0]) setUserWeight(users[0].weight);
+    });
   }, []);
 
   useEffect(() => {
     if (target === "new" || target === null) {
       setForm(EMPTY_FORM);
+      setLog(undefined);
     } else {
       setForm({
         name: target.name,
@@ -62,6 +70,7 @@ export default function ExerciseFormModal({ target, isOpen, onClose }: ExerciseF
         movementType: target.movementType,
         url: target.url ?? "",
       });
+      setLog(target.latestLog);
     }
   }, [target]);
 
@@ -73,7 +82,12 @@ export default function ExerciseFormModal({ target, isOpen, onClose }: ExerciseF
     try {
       const data = { ...form, url: form.url || undefined };
       if (isEdit) {
-        await db.exercises.update((target as Exercise).id!, data);
+        const ex = target as Exercise;
+        const logData = log
+          ? { latestLog: log, highestLog: bestLog(ex.highestLog, log) }
+          : { latestLog: undefined, highestLog: undefined };
+        await db.exercises.update(ex.id!, { ...data, ...logData });
+        await updatePlansForExercise(ex.id!);
       } else {
         await db.exercises.add({ id: crypto.randomUUID(), ...data });
       }
@@ -203,6 +217,21 @@ export default function ExerciseFormModal({ target, isOpen, onClose }: ExerciseF
                   type="text"
                 />
               </div>
+
+              {/* Latest log */}
+              {isEdit && log && (
+                <div>
+                  <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wide mb-1.5">
+                    Latest log
+                  </div>
+                  <LogEditor
+                    log={log}
+                    userWeight={userWeight}
+                    onChange={setLog}
+                    onClear={() => setLog(undefined)}
+                  />
+                </div>
+              )}
 
               {isEdit && (
                 <div className="flex flex-col gap-2 pt-2">
