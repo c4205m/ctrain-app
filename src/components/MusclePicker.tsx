@@ -16,9 +16,10 @@ interface MusclePickerProps {
   muscles: MuscleGroup[];
   onChange: (muscles: MuscleGroup[]) => void;
   modelWidth?: number;
+  showFocus?: boolean;
 }
 
-export default function MusclePicker({ muscles, onChange, modelWidth = 200 }: MusclePickerProps) {
+export default function MusclePicker({ muscles, onChange, modelWidth = 200, showFocus = false }: MusclePickerProps) {
   const [side, setSide] = useState<"front" | "back">("front");
 
   const bodyData: IExerciseData[] = muscles.flatMap((m, i) =>
@@ -55,24 +56,43 @@ export default function MusclePicker({ muscles, onChange, modelWidth = 200 }: Mu
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="flex flex-wrap gap-1.5 overflow-hidden"
+            className="overflow-hidden"
           >
-            {muscles.map((m) => (
-              <motion.button
-                key={m}
-                layout
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                type="button"
-                onClick={() => onChange(toggle(muscles, m))}
-              >
-                <Chip variant="custom" customClass="text-white border-none" style={{ backgroundColor: MUSCLE_COLOR[m] }}>
-                  {slugToTitle(m)}
-                </Chip>
-              </motion.button>
-            ))}
+            <div className="flex flex-wrap gap-1.5 p-1.5">
+              {muscles.map((m, i) => {
+                const isFocus = showFocus && i === 0;
+                return (
+                  <motion.button
+                    key={m}
+                    layout
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                    type="button"
+                    style={{ willChange: "transform" }}
+                    whileTap={{ scale: 0.94 }}
+                    onClick={() =>
+                      showFocus
+                        ? onChange([m, ...muscles.filter((x) => x !== m)])
+                        : onChange(toggle(muscles, m))
+                    }
+                    className={showFocus && !isFocus ? "opacity-50" : undefined}
+                  >
+                    <Chip
+                      variant="custom"
+                      customClass={`text-white border-none ${isFocus ? "ring-2 ring-offset-1" : ""}`}
+                      style={{
+                        backgroundColor: MUSCLE_COLOR[m],
+                        ...(isFocus ? { ["--tw-ring-color" as string]: MUSCLE_COLOR[m] } : {}),
+                      }}
+                    >
+                      {slugToTitle(m)}
+                    </Chip>
+                  </motion.button>
+                );
+              })}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

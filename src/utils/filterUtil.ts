@@ -10,6 +10,7 @@ export interface FilterOptions {
   movementTypes: string[]
   tools: string[]
   filterMode: FilterMode
+  focusOnly?: boolean
 }
 
 export const MUSCLE_ORDER: MuscleGroup[] = [
@@ -24,15 +25,18 @@ function matchesTool(ex: Exercise, tools: string[]): boolean {
 }
 
 export function filterExercises(exercises: Exercise[], filters: FilterOptions): Exercise[] {
-  const { muscles, difficulty, movementTypes, tools, filterMode } = filters
+  const { muscles, difficulty, movementTypes, tools, filterMode, focusOnly } = filters
   const hasAny = muscles.length || difficulty.length || movementTypes.length || tools.length
+
+  const matchesMuscle = (ex: Exercise) =>
+    focusOnly ? muscles.includes(ex.muscles[0]) : muscles.some(m => ex.muscles.includes(m))
 
   return exercises.filter(ex => {
     if (!hasAny) return true
 
     if (filterMode === 'additive') {
       return (
-        (muscles.length > 0 && muscles.some(m => ex.muscles.includes(m))) ||
+        (muscles.length > 0 && matchesMuscle(ex)) ||
         (difficulty.length > 0 && difficulty.includes(ex.difficulty)) ||
         (movementTypes.length > 0 && movementTypes.some(m => ex.movementType.includes(m))) ||
         (tools.length > 0 && matchesTool(ex, tools))
@@ -40,7 +44,7 @@ export function filterExercises(exercises: Exercise[], filters: FilterOptions): 
     }
 
     // intersection (default)
-    if (muscles.length && !muscles.some(m => ex.muscles.includes(m))) return false
+    if (muscles.length && !matchesMuscle(ex)) return false
     if (difficulty.length && !difficulty.includes(ex.difficulty)) return false
     if (movementTypes.length && !movementTypes.some(m => ex.movementType.includes(m))) return false
     if (tools.length && !matchesTool(ex, tools)) return false
