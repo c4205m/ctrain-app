@@ -5,6 +5,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../db/db";
 import FilterChipGroup from "../components/FilterChipGroup";
 import MusclePicker from "../components/MusclePicker";
+import Toggle from "../components/Toggle";
 
 
 const DIFFICULTY_LABEL_VALUES = Object.keys(DifficultyLevels);
@@ -19,6 +20,7 @@ export default function Filter() {
     difficulty, setDifficulty,
     movementTypes, setMovementTypes,
     tools, setTools,
+    focusOnly, setFocusOnly,
     reset,
     activeCount,
   } = useFilterStore();
@@ -47,6 +49,24 @@ export default function Filter() {
           onChange={setMuscles}
           modelWidth={220}
         />
+
+        <AnimatePresence initial={false}>
+          {muscles.length > 0 && (
+            <motion.div
+              key="focus-only"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="overflow-hidden"
+            >
+              <div className="flex items-center justify-between pt-3">
+                <span className="text-sm text-zinc-700">Focus muscle only</span>
+                <Toggle checked={focusOnly} onChange={setFocusOnly} />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Difficulty */}
         <h2 className="font-heading font-semibold text-sm text-zinc-900 mb-3 mt-5">Difficulty</h2>

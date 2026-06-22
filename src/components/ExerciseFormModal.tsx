@@ -174,6 +174,7 @@ export default function ExerciseFormModal({ target, isOpen, onClose }: ExerciseF
                 <MusclePicker
                   muscles={form.muscles}
                   onChange={(muscles) => setForm((f) => ({ ...f, muscles }))}
+                  showFocus
                 />
               </div>
 
